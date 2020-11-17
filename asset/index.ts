@@ -1,9 +1,10 @@
 import { Asset, error } from "cc";
-import { path, projectAssetPath } from "../utils/editor";
+import { fse, path, projectAssetPath } from "../utils/editor";
 import { classes, SyncAssetData } from "./asset";
 
 import './material';
 import './mesh';
+import './shader';
 
 let map: Map<string, SyncAssetData> = new Map;
 
@@ -20,13 +21,22 @@ export function get (uuid: string): Asset | null {
 }
 
 export async function sync (data: SyncAssetData, assetBasePath: string) {
-    data.srcPath = path.join(assetBasePath, data.path);
-    data.dstPath = path.join(projectAssetPath, data.path);
-
     let cls = classes.get(data.name);
     if (cls) {
+        cls.calcPath(data, assetBasePath);
+
+        let needSync = await cls.needSync(data);
+        if (needSync) {
+            try {
+                await cls.sync(data, assetBasePath);
+            }
+            catch (err) {
+                error(err);
+            }
+        }
+
         try {
-            data.asset = await cls.sync(data);
+            await cls.load(data);
         }
         catch (err) {
             error(err);

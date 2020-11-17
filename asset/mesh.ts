@@ -22,34 +22,21 @@ export interface SyncMeshData extends SyncAssetData {
 export class SyncMesh extends SyncAsset {
     static clsName = 'cc.Mesh';
 
-    static async sync (data: SyncMeshData): Promise<Asset | null> {
+    static calcPath (data: SyncMeshData, assetBasePath: string) {
+        data.srcPath = path.join(assetBasePath, data.path);
+        data.dstPath = path.join(projectAssetPath, data.path);
+        
+        let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
+        data.dstPath = path.join(path.dirname(data.dstPath), basenameNoExt, data.meshName + '.gltf');
+        data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}/${data.meshName}.mesh`;
+    }
+
+    static async sync (data: SyncMeshData) {
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
         let dstPath = path.join(path.dirname(data.dstPath), basenameNoExt, data.meshName + '.gltf');
 
         await new Promise((resolve, reject) => {
-            let content;
-            let mtime;
-
-            if (fse.existsSync(dstPath)) {
-                const srcStats = fse.statSync(data.srcPath);
-
-                try {
-                    content = fse.readJSONSync(dstPath);
-                }
-                catch (err) {
-                }
-
-                mtime = srcStats.mtime.toJSON();
-                if (content && mtime === content.__mtime__) {
-                    resolve();
-                    return;
-                }
-            }
-
-
             let gltf = toGltfMesh(data);
-
-            (gltf as any).__mtime__ = mtime;
 
             fse.ensureDirSync(path.dirname(dstPath));
             fse.writeJSON(dstPath, gltf, (err: any) => {
@@ -60,9 +47,6 @@ export class SyncMesh extends SyncAsset {
             })
         });
 
-        const url = `db://assets/${formatPath(path.relative(projectAssetPath, dstPath))}/${data.meshName}.mesh`;
-        await Editor.Message.request('asset-db', 'refresh-asset', url);
-
-        return loadAssetByUrl(url);
+        await Editor.Message.request('asset-db', 'refresh-asset', data.dstUrl);
     }
 }

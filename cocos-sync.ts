@@ -60,7 +60,7 @@ if (EDITOR) {
         })
     }
 
-    function syncDataString (dataStr: string) {
+    async function syncDataString (dataStr: string) {
         let data: SyncSceneData;
         try {
             data = JSON.parse(dataStr);
@@ -72,9 +72,9 @@ if (EDITOR) {
 
         collectSceneData(data);
 
-        syncAssets(() => {
-            syncDatas();
-        });
+        await syncAssets();
+
+        syncDatas();
     }
 
     let _sceneData: SyncSceneData | null = null;
@@ -145,25 +145,17 @@ if (EDITOR) {
     }
 
 
-    function syncAssets (cb: Function) {
-        let count = 0;
-        let total = _sceneData!.assets.length;
+    async function syncAssets () {
 
         SyncAssets.clear();
-        if (total <= 0) {
-            return cb();
-        }
 
-        _sceneData!.assets.forEach(async dataStr => {
+        let total = _sceneData!.assets.length;
+        for (let i = 0; i < total; i++) {
+            let dataStr = _sceneData!.assets[i];
             let data: SyncAssetData = JSON.parse(dataStr);
 
             await SyncAssets.sync(data, _sceneData!.assetBasePath);
-
-            count++;
-            if (count >= total) {
-                cb();
-            }
-        });
+        }
     }
 
 

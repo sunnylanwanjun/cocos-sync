@@ -69,7 +69,8 @@ export class SyncMaterial extends SyncAsset {
         }
         else {
             const uuid = await Editor.Message.request('asset-db', 'query-uuid', data.dstUrl);
-            await Editor.Message.request('asset-db', 'save-asset', uuid, mtl);
+            // await Editor.Message.request('asset-db', 'save-asset', uuid, mtl);
+            await cce.Ipc.send('save-asset', uuid, mtl)
         }
     }
 

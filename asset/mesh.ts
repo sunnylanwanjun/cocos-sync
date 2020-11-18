@@ -32,20 +32,10 @@ export class SyncMesh extends SyncAsset {
     }
 
     static async sync (data: SyncMeshData) {
-        let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
-        let dstPath = path.join(path.dirname(data.dstPath), basenameNoExt, data.meshName + '.gltf');
+        let gltf = toGltfMesh(data);
 
-        await new Promise((resolve, reject) => {
-            let gltf = toGltfMesh(data);
-
-            fse.ensureDirSync(path.dirname(dstPath));
-            fse.writeJSON(dstPath, gltf, (err: any) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve();
-            })
-        });
+        fse.ensureDirSync(path.dirname(data.dstPath));
+        fse.writeJSONSync(data.dstPath, gltf);
 
         await Editor.Message.request('asset-db', 'refresh-asset', data.dstUrl);
     }

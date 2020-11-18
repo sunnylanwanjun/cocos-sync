@@ -1,4 +1,4 @@
-import { Asset, Color, error, Material, Texture2D } from "cc";
+import { Asset, Color, error, gfx, Material, renderer, Texture2D } from "cc";
 import { type } from 'os';
 import { deserialize } from 'v8';
 import { loadAssetByUrl } from "../utils/asset-operation";
@@ -37,9 +37,14 @@ export interface SyncMaterialPropertyData {
     type: ShaderPropertyType;
 }
 
+export interface SyncPassStateData {
+    cullMode: gfx.CullMode;
+}
+
 export interface SyncMaterialData extends SyncAssetData {
     shaderUuid: string;
     properties: SyncMaterialPropertyData[];
+    passState: SyncPassStateData;
 }
 
 @register
@@ -97,7 +102,7 @@ export class SyncMaterial extends SyncAsset {
                     value = Number.parseFloat(p.value);
                 }
                 else if (p.type === ShaderPropertyType.Texture) {
-                    value = SyncAssets.get(p.value) as Texture2D;
+                    value = SyncAssets.get(p.value) as Texture2D || undefined;
                 }
                 else {
                     try {
@@ -123,22 +128,17 @@ export class SyncMaterial extends SyncAsset {
                 }
             })
 
-            // const defaultUuid = await Editor.Message.request('asset-db', 'query-uuid', data.dstUrl);
-            // const materialDump = await cce.Asset.queryMaterial(defaultUuid);
-            // if (materialDump) {
-            //     materialDump.data.forEach((t: any) => {
-            //         t.passes.forEach((p: any) => {
-            //             let instanceDef = p.defines.find((d: any) => d.name === 'USE_INSTANCING');
-            //             if (instanceDef) {
-            //                 instanceDef.value = true;
-            //             }
-            //         })
-            //     })
+            renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
+                rasterizerState: {
+                    cullMode: data.passState.cullMode
+                }
+            });
 
-            // }
+            (mtl as any)._defines.forEach((d: any) => {
+                d['USE_INSTANCING'] = true;
+            })
 
             mtlJson = cce.Utils.serialize(mtl);
-            // mtl = await cce.Asset.decodeMaterial(materialDump);
         }
 
         await this.save(data, mtlJson);

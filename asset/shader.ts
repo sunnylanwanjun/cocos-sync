@@ -1,6 +1,4 @@
-import { Asset } from "cc";
-import { loadAssetByUrl } from "../utils/asset-operation";
-import { cce, Editor, fse, path, projectAssetPath } from "../utils/editor";
+import { Editor, path, projectAssetPath } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
 
 export interface SyncShaderData extends SyncAssetData {

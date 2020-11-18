@@ -1,10 +1,11 @@
 {
-  "ver": "4.0.3",
+  "ver": "4.0.9",
   "importer": "typescript",
   "imported": true,
   "uuid": "e6fd1934-4156-4e9e-bee4-0ae89f461a0e",
   "files": [
     ".js",
+    "editor.js",
     ".trans"
   ],
   "subMetas": {},

@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/component/terrain.js",
+    "moduleId": "project:///assets/libs/cocos-sync/component/terrain.js",
     "importerSettings": 7
   }
 }

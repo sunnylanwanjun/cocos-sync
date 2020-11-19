@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/component/sync-merge-statics.js",
+    "moduleId": "project:///assets/libs/cocos-sync/component/sync-merge-statics.js",
     "importerSettings": 7
   }
 }

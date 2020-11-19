@@ -20,12 +20,12 @@ export function get (uuid: string): Asset | null {
     return data.asset;
 }
 
-export async function sync (data: SyncAssetData, assetBasePath: string) {
+export async function sync (data: SyncAssetData, assetBasePath: string, forceSync: boolean) {
     let cls = classes.get(data.name);
     if (cls) {
         cls.calcPath(data, assetBasePath);
 
-        let needSync = await cls.needSync(data);
+        let needSync = await cls.needSync(data) || forceSync;
         if (needSync) {
             try {
                 await cls.sync(data, assetBasePath);

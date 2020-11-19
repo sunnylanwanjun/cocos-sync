@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/utils/path.js",
+    "moduleId": "project:///assets/libs/cocos-sync/utils/path.js",
     "importerSettings": 7
   }
 }

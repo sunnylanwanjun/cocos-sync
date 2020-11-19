@@ -1,4 +1,4 @@
-import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, Node, Quat, Vec3, Vec4, warn } from "cc";
+import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, Node, Quat, Vec3, warn } from "cc";
 import { EDITOR } from "cce.env";
 import { SyncAssetData } from "./asset/asset";
 
@@ -6,12 +6,11 @@ import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { cce, io, path, projectAssetPath } from "./utils/editor";
+import { io } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 
 let _tempQuat = new Quat();
-let _tempVec3 = new Vec3();
 
 interface SyncNodeData {
     name: string;
@@ -41,6 +40,7 @@ interface SyncSceneData {
     children: SyncNodeData[];
 
     assetBasePath: string;
+    forceSyncAsset: boolean;
     assets: string[];
 }
 
@@ -107,6 +107,20 @@ if (EDITOR) {
             }
         }
     }
+
+    function calcMatrix (data: SyncNodeData) {
+        let parentData = _nodeList[data.parentIndex];
+        if (parentData && !parentData.matrix) {
+            calcMatrix(parentData);
+        }
+
+        Quat.fromEuler(_tempQuat, data.eulerAngles.x, data.eulerAngles.y, data.eulerAngles.z);
+        data.matrix = Mat4.fromRTS(new Mat4, _tempQuat, data.position, data.scale);
+
+        if (parentData) {
+            data.matrix = Mat4.multiply(data.matrix, parentData.matrix, data.matrix);
+        }
+    }
     function collectNodeData (data: SyncNodeData) {
         let parentData = _nodeList[data.parentIndex];
         if (parentData) {
@@ -118,18 +132,7 @@ if (EDITOR) {
             }
 
             if (data.mergeToNodeIndex >= 0) {
-                if (!parentData.matrix) {
-                    Quat.fromEuler(_tempQuat, parentData.eulerAngles.x, parentData.eulerAngles.y, parentData.eulerAngles.z);
-                    parentData.matrix = Mat4.fromRTS(new Mat4, _tempQuat, parentData.position, parentData.scale);
-                }
-                if (!data.matrix) {
-                    Quat.fromEuler(_tempQuat, data.eulerAngles.x, data.eulerAngles.y, data.eulerAngles.z);
-                    data.matrix = Mat4.fromRTS(new Mat4, _tempQuat, data.position, data.scale);
-
-                    if (parentData.matrix) {
-                        data.matrix = Mat4.multiply(data.matrix, parentData.matrix, data.matrix);
-                    }
-                }
+                calcMatrix(data);
             }
         }
 
@@ -149,13 +152,20 @@ if (EDITOR) {
 
         SyncAssets.clear();
 
+        let time = Date.now();
+        log('Begin Sync assets...');
+
         let total = _sceneData!.assets.length;
         for (let i = 0; i < total; i++) {
             let dataStr = _sceneData!.assets[i];
             let data: SyncAssetData = JSON.parse(dataStr);
 
-            await SyncAssets.sync(data, _sceneData!.assetBasePath);
+            log(`Sync asset: ${i} - ${total} - ${data.path}`);
+
+            await SyncAssets.sync(data, _sceneData!.assetBasePath, _sceneData!.forceSyncAsset);
         }
+
+        log(`End Sync assets : ${(Date.now() - time) / 1000}s`);
     }
 
 

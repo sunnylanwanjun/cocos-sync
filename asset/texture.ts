@@ -1,4 +1,4 @@
-import { fse, path, projectAssetPath } from "../utils/editor";
+import { Editor, fse, path, projectAssetPath } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
 
 export interface SyncTextureData extends SyncAssetData {
@@ -17,6 +17,7 @@ export class SyncTexture extends SyncAsset {
     static async sync (data: SyncTextureData, assetBasePath: string) {
         fse.ensureDirSync(path.dirname(data.dstPath));
         fse.copyFileSync(data.srcPath, data.dstPath);
+        await Editor.Message.request('asset-db', 'refresh-asset', data.dstUrl);
     }
 }
 

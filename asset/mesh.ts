@@ -1,5 +1,4 @@
-import { Asset, error, IVec3Like } from 'cc';
-import { loadAssetByUrl } from '../utils/asset-operation';
+import { IVec3Like } from 'cc';
 import { Editor, fse, path, projectAssetPath } from '../utils/editor';
 import { toGltfMesh } from '../utils/gltf';
 import { formatPath } from '../utils/path';
@@ -25,7 +24,7 @@ export class SyncMesh extends SyncAsset {
     static calcPath (data: SyncMeshData, assetBasePath: string) {
         data.srcPath = path.join(assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, data.path);
-        
+
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
         data.dstPath = path.join(path.dirname(data.dstPath), basenameNoExt, data.meshName + '.gltf');
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}/${data.meshName}.mesh`;

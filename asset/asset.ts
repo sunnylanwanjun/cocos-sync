@@ -1,6 +1,7 @@
 import { Asset } from 'cc';
+import { EDITOR } from 'cce.env';
 import { loadAssetByUrl } from '../utils/asset-operation';
-import { fse, path, projectAssetPath } from '../utils/editor';
+import { fse, path, projectAssetPath, projectPath } from '../utils/editor';
 
 export interface SyncAssetData {
     name: string;
@@ -15,9 +16,19 @@ export interface SyncAssetData {
     dstUrl: string;
 }
 
+let mtimeConfigsPath: string;
+let mtimeConfigs: any = {};
+
+if (EDITOR) {
+    mtimeConfigsPath = path.join(projectPath, 'temp/cocos-sync/mtime.json');
+    if (fse.existsSync(mtimeConfigsPath)) {
+        mtimeConfigs = fse.readJSONSync(mtimeConfigsPath);
+    }
+}
+
 export class SyncAsset {
     static clsName = 'cc.Asset';
-   
+
     static calcPath (data: SyncAssetData, assetBasePath: string) {
         data.srcPath = path.join(assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, data.path);
@@ -32,26 +43,18 @@ export class SyncAsset {
         if (!fse.existsSync(data.srcPath)) {
             return false;
         }
-        
-        let metaPath = data.dstPath + '.meta';
-        let mtime, content;
-        if (fse.existsSync(metaPath)) {
-            const srcStats = fse.statSync(data.srcPath);
 
-            try {
-                content = fse.readJSONSync(metaPath);
-            }
-            catch (err) {
-            }
+        const srcStats = fse.statSync(data.srcPath);
+        let mtime = srcStats.mtime.toJSON();
 
-            mtime = srcStats.mtime.toJSON();
-            if (content && mtime === content.__mtime__) {
-                return false;
-            }
-
-            content.__mtime__ = mtime;
-            fse.writeJSONSync(metaPath, content);
+        if (mtimeConfigs[data.srcPath] === mtime && fse.existsSync(data.dstPath)) {
+            return false;
         }
+
+        mtimeConfigs[data.srcPath] = mtime;
+
+        fse.ensureDirSync(path.dirname(mtimeConfigsPath));
+        fse.writeJSONSync(mtimeConfigsPath, mtimeConfigs);
 
         return true;
     }

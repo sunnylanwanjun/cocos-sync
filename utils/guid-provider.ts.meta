@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/utils/guid-provider.js",
+    "moduleId": "project:///assets/libs/cocos-sync/utils/guid-provider.js",
     "importerSettings": 7
   }
 }

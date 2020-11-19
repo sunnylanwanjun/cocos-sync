@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/asset/asset.js",
+    "moduleId": "project:///assets/libs/cocos-sync/asset/asset.js",
     "importerSettings": 7
   }
 }

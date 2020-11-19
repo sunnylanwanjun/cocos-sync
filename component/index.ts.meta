@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/component/index.js",
+    "moduleId": "project:///assets/libs/cocos-sync/component/index.js",
     "importerSettings": 7
   }
 }

@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/cocos-sync/utils/asset-operation.js",
+    "moduleId": "project:///assets/libs/cocos-sync/utils/asset-operation.js",
     "importerSettings": 7
   }
 }

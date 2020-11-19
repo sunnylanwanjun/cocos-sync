@@ -61,7 +61,7 @@ export class SyncMaterial extends SyncAsset {
 
     static async save (data: SyncMaterialData, mtl: any) {
         if (typeof mtl !== 'string') {
-            mtl = JSON.stringify(mtl);
+            mtl = JSON.stringify(mtl, null, 4);
         }
 
         if (!fse.existsSync(data.dstPath)) {
@@ -86,7 +86,8 @@ export class SyncMaterial extends SyncAsset {
         }
 
         let shaderData = SyncAssets.get(data.shaderUuid) as any as SyncShaderData;
-        if (shaderData && fse.existsSync(shaderData.dstPath)) {
+        let hasShader = shaderData && fse.existsSync(shaderData.dstPath);
+        if (hasShader) {
             const shaderUuid = await Editor.Message.request('asset-db', 'query-uuid', shaderData.dstUrl);
             if (!mtlJson._effectAsset) {
                 mtlJson._effectAsset = {}
@@ -95,8 +96,15 @@ export class SyncMaterial extends SyncAsset {
                 mtlJson._effectAsset.__uuid__ = shaderUuid;
                 await this.save(data, mtlJson);
             }
+        }
 
-            let mtl: Material = await loadAssetByUrl(data.dstUrl) as Material;
+        if (!fse.existsSync(data.dstPath)) {
+            await this.save(data, mtlJson);
+        }
+
+        let mtl: Material = await loadAssetByUrl(data.dstUrl) as Material;
+
+        if (hasShader) {
             data.properties.forEach(p => {
                 let value;
                 if (p.type === ShaderPropertyType.Float) {
@@ -129,18 +137,19 @@ export class SyncMaterial extends SyncAsset {
                 }
             })
 
-            renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
-                rasterizerState: {
-                    cullMode: data.passState.cullMode
-                }
-            });
-
-            (mtl as any)._defines.forEach((d: any) => {
-                d['USE_INSTANCING'] = true;
-            })
-
-            mtlJson = cce.Utils.serialize(mtl);
         }
+
+        renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
+            rasterizerState: {
+                cullMode: data.passState.cullMode
+            }
+        });
+
+        (mtl as any)._defines.forEach((d: any) => {
+            d['USE_INSTANCING'] = true;
+        })
+
+        mtlJson = cce.Utils.serialize(mtl);
 
         await this.save(data, mtlJson);
     }

@@ -4,14 +4,19 @@ import { toGltfMesh } from '../utils/gltf';
 import { formatPath } from '../utils/path';
 import { register, SyncAsset, SyncAssetData } from './asset';
 
-export interface SyncMeshData extends SyncAssetData {
-    meshName: string;
 
+export interface SyncSubMeshData {
     vertices: number[];
     uv: number[];
     normals: number[];
     boneWeights: number[];
     indices: number[];
+}
+
+export interface SyncMeshData extends SyncAssetData {
+    meshName: string;
+
+    subMeshes: SyncSubMeshData[];
 
     min: IVec3Like;
     max: IVec3Like;

@@ -9,6 +9,7 @@ export interface SyncSubMeshData {
     vertices: number[];
     uv: number[];
     normals: number[];
+    colors: number[];
     boneWeights: number[];
     indices: number[];
 }

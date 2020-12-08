@@ -1,4 +1,4 @@
-import { EDITOR } from "cce.env";
+import { EDITOR } from "cce:env";
 import { formatPath } from "./path";
 
 export const cce = EDITOR && (window as any).cce;

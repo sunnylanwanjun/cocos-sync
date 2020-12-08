@@ -1,5 +1,5 @@
 import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, Node, Quat, Vec3, warn } from "cc";
-import { EDITOR } from "cce.env";
+import { EDITOR } from "cce:env";
 import { SyncAssetData } from "./asset/asset";
 
 import * as SyncComponents from './component';

@@ -1,5 +1,5 @@
 import { Asset, assetManager } from "cc";
-import { EDITOR } from "cce.env";
+import { EDITOR } from "cce:env";
 
 let _loadAssetByUrl: (filePath: string) => Promise<Asset | null> = async (url: string) => { return null };
 

@@ -1,5 +1,5 @@
 import { Asset } from 'cc';
-import { EDITOR } from 'cce.env';
+import { EDITOR } from 'cce:env';
 import { loadAssetByUrl } from '../utils/asset-operation';
 import { fse, path, projectAssetPath, projectPath } from '../utils/editor';
 

@@ -1,5 +1,5 @@
-import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, Node, Quat, Vec3, warn } from "cc";
-import { EDITOR } from "cce:env";
+import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, MeshRenderer, Node, Quat, Vec3, warn } from "cc";
+import { EDITOR } from "cc/env";
 import { SyncAssetData } from "./asset/asset";
 
 import * as SyncComponents from './component';
@@ -259,9 +259,9 @@ if (EDITOR) {
             })
             let m = SyncAssets.get(mrData.mesh) as Mesh;
 
-            let mergeInfo = rootNode.getComponent('MergeStatics');
-            if (mergeInfo) {
-                (mergeInfo as any).addData(m, data.matrix, materials);
+            let instanceObject: any = rootNode.getComponent('InstanceObject');
+            if (instanceObject) {
+                instanceObject.addData({ mesh: m, sharedMaterials: materials, shadowCastingMode: MeshRenderer.ShadowCastingMode.OFF }, data.matrix);
             }
 
             break;
@@ -303,7 +303,7 @@ if (EDITOR) {
 
 
         if (data.needMerge) {
-            let comp = node.getComponent('MergeStatics');
+            let comp = node.getComponent('InstanceObject');
             if (comp) {
                 _mergeList.push(comp);
             }

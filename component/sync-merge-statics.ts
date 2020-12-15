@@ -3,15 +3,15 @@ const { ccclass, property, type, executeInEditMode } = _decorator
 
 import { SyncComponentData, SyncComponent, register } from "./component";
 
-export interface SyncMergeStatiscData extends SyncComponentData {
+export interface SyncInstanceObjectData extends SyncComponentData {
     mergeSize: number;
 }
 
 @register
-export class SyncMergeStatisc extends SyncComponent {
-    static clsName = 'MergeStatics';
+export class SyncInstanceObject extends SyncComponent {
+    static clsName = 'InstanceObject';
 
-    static import (comp, data: SyncMergeStatiscData) {
+    static import (comp, data: SyncInstanceObjectData) {
         comp.clear();
         comp.mergeSize = data.mergeSize;
     }

@@ -1,5 +1,5 @@
 {
-  "ver": "4.0.9",
+  "ver": "4.0.10",
   "importer": "typescript",
   "imported": true,
   "uuid": "6f268a03-ef55-4301-a6ac-acf585b530f5",
@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/libs/cocos-sync/asset/texture.js",
+    "moduleId": "project:///assets/lib/cocos-sync/asset/texture.js",
     "importerSettings": 7
   }
 }

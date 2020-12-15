@@ -1,5 +1,5 @@
 {
-  "ver": "4.0.9",
+  "ver": "4.0.10",
   "importer": "typescript",
   "imported": true,
   "uuid": "bd1cd91e-5b36-4555-8be6-bcd8e3a634ef",
@@ -11,7 +11,7 @@
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/libs/cocos-sync/component/terrain.js",
+    "moduleId": "project:///assets/lib/cocos-sync/component/terrain.js",
     "importerSettings": 7
   }
 }

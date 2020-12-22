@@ -1,6 +1,7 @@
 import { Asset, Color, error, gfx, Material, renderer, Texture2D } from "cc";
 import { type } from 'os';
 import { deserialize } from 'v8';
+import { SyncSceneData } from "../scene";
 import { loadAssetByUrl } from "../utils/asset-operation";
 import { cce, Editor, fse, path, projectAssetPath } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
@@ -51,12 +52,12 @@ export interface SyncMaterialData extends SyncAssetData {
 export class SyncMaterial extends SyncAsset {
     static clsName = 'cc.Material';
 
-    static calcPath (data: SyncAssetData, assetBasePath: string) {
-        data.srcPath = path.join(assetBasePath, data.path);
+    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+        data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
-        data.dstPath = path.join(projectAssetPath, data.path);
-        data.dstUrl = `db://assets/${data.path}`;
+        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
+        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
     static async save (data: SyncMaterialData, mtl: any) {

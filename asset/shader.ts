@@ -1,3 +1,4 @@
+import { SyncSceneData } from "../scene";
 import { Editor, path, projectAssetPath } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
 
@@ -8,13 +9,13 @@ export interface SyncShaderData extends SyncAssetData {
 export class SyncShader extends SyncAsset {
     static clsName = 'cc.Shader';
 
-    static calcPath (data: SyncAssetData, assetBasePath: string) {
-        data.srcPath = path.join(assetBasePath, data.path);
+    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+        data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         let extname: string = path.extname(data.path);
         data.path = data.path.replace(extname, '') + '.effect';
-        data.dstPath = path.join(projectAssetPath, data.path);
-        data.dstUrl = `db://assets/${data.path}`;
+        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
+        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
     static async needSync (data: SyncAssetData) {

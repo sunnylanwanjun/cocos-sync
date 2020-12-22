@@ -1,5 +1,6 @@
 import { Asset } from 'cc';
 import { EDITOR } from 'cc/env';
+import { SyncSceneData } from '../scene';
 import { loadAssetByUrl } from '../utils/asset-operation';
 import { fse, path, projectAssetPath, projectPath } from '../utils/editor';
 
@@ -14,6 +15,8 @@ export interface SyncAssetData {
     srcPath: string;
     dstPath: string;
     dstUrl: string;
+
+    shouldCheckSrc: boolean;
 }
 
 let mtimeConfigsPath: string;
@@ -29,10 +32,10 @@ if (EDITOR) {
 export class SyncAsset {
     static clsName = 'cc.Asset';
 
-    static calcPath (data: SyncAssetData, assetBasePath: string) {
-        data.srcPath = path.join(assetBasePath, data.path);
-        data.dstPath = path.join(projectAssetPath, data.path);
-        data.dstUrl = `db://assets/${data.path}`;
+    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
+        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
     static async sync (data: SyncAssetData, assetBasePath: string) {
@@ -40,7 +43,7 @@ export class SyncAsset {
     }
 
     static async needSync (data: SyncAssetData) {
-        if (!fse.existsSync(data.srcPath)) {
+        if (data.shouldCheckSrc && !fse.existsSync(data.srcPath)) {
             return false;
         }
 

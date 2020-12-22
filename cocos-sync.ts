@@ -9,41 +9,10 @@ import { SyncComponentData } from "./component/component";
 import { io } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
+import { SyncNodeData } from "./node";
+import { SyncSceneData } from "./scene";
 
 let _tempQuat = new Quat();
-
-interface SyncNodeData {
-    name: string;
-    uuid: string;
-
-    position: IVec3Like;
-    scale: IVec3Like;
-    eulerAngles: IVec3Like;
-
-    children: SyncNodeData[];
-    components: string[];
-
-    needMerge: boolean;
-
-    // runtime
-    parentIndex: number;
-    node: Node;
-
-    mergeToNodeIndex: number;
-    matrix: Mat4;
-}
-
-
-interface SyncSceneData {
-    nodeCount: number;
-    componentCount: number;
-    children: SyncNodeData[];
-
-    assetBasePath: string;
-    forceSyncAsset: boolean;
-    assets: string[];
-}
-
 
 if (EDITOR) {
     let app = (window as any).__cocos_sync_io__;
@@ -162,7 +131,7 @@ if (EDITOR) {
 
             log(`Sync asset: ${i} - ${total} - ${data.path}`);
 
-            await SyncAssets.sync(data, _sceneData!.assetBasePath, _sceneData!.forceSyncAsset);
+            await SyncAssets.sync(data, _sceneData!);
         }
 
         log(`End Sync assets : ${(Date.now() - time) / 1000}s`);

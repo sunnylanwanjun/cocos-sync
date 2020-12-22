@@ -1,4 +1,5 @@
 import { IVec3Like } from 'cc';
+import { SyncSceneData } from '../scene';
 import { Editor, fse, path, projectAssetPath } from '../utils/editor';
 import { toGltfMesh } from '../utils/gltf';
 import { formatPath } from '../utils/path';
@@ -27,9 +28,9 @@ export interface SyncMeshData extends SyncAssetData {
 export class SyncMesh extends SyncAsset {
     static clsName = 'cc.Mesh';
 
-    static calcPath (data: SyncMeshData, assetBasePath: string) {
-        data.srcPath = path.join(assetBasePath, data.path);
-        data.dstPath = path.join(projectAssetPath, data.path);
+    static calcPath (data: SyncMeshData, sceneData: SyncSceneData) {
+        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
         data.dstPath = path.join(path.dirname(data.dstPath), basenameNoExt, data.meshName + '.gltf');

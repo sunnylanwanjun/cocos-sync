@@ -1,3 +1,4 @@
+import { SyncSceneData } from '../scene';
 import { Editor, fse, path, projectAssetPath, Sharp } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
 
@@ -15,8 +16,8 @@ export interface SyncTextureData extends SyncAssetData {
 export class SyncTexture extends SyncAsset {
     static clsName = 'cc.Texture';
 
-    static calcPath (data: SyncAssetData, assetBasePath: string) {
-        data.srcPath = path.join(assetBasePath, data.path);
+    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+        data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         let image = (data as SyncTextureData).image;
         if (image) {
@@ -24,8 +25,8 @@ export class SyncTexture extends SyncAsset {
             data.path = path.join(path.dirname(data.path), basenameNoExt + '.png');
         }
 
-        data.dstPath = path.join(projectAssetPath, data.path);
-        data.dstUrl = `db://assets/${data.path}/texture`;
+        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
+        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}/texture`;
     }
 
     static async sync (data: SyncTextureData, assetBasePath: string) {

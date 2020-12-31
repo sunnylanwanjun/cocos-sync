@@ -1,5 +1,5 @@
 import { Asset, error } from "cc";
-import { fse, path, projectAssetPath } from "../utils/editor";
+import { SyncSceneData } from "../scene";
 import { classes, SyncAssetData } from "./asset";
 
 import './material';
@@ -20,15 +20,15 @@ export function get (uuid: string): Asset | null {
     return data.asset;
 }
 
-export async function sync (data: SyncAssetData, assetBasePath: string, forceSync: boolean) {
+export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
     let cls = classes.get(data.name);
     if (cls) {
-        cls.calcPath(data, assetBasePath);
+        cls.calcPath(data, sceneData);
 
-        let needSync = await cls.needSync(data) || forceSync;
+        let needSync = await cls.needSync(data) || sceneData.forceSyncAsset;
         if (needSync) {
             try {
-                await cls.sync(data, assetBasePath);
+                await cls.sync(data, sceneData.assetBasePath);
             }
             catch (err) {
                 error(err);

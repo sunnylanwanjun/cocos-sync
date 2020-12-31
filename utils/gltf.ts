@@ -40,6 +40,13 @@ const _attributes = {
         bytesPerElement: 4,
         type: "VEC2"
     },
+    uv1: {
+        attr: 'TEXCOORD_1',
+        componentType: 5126,
+        count: 2,
+        bytesPerElement: 4,
+        type: "VEC2"
+    },
     indices: {
         componentType: 5123,
         count: 1,
@@ -55,6 +62,21 @@ export function toGltfMesh (mesh: SyncMeshData) {
             "generator": "Khronos glTF Blender I/O v1.2.75",
             "version": "2.0"
         },
+        "scene": 0,
+        "scenes": [
+            {
+                "name": "Scene",
+                "nodes": [
+                    0
+                ]
+            }
+        ],
+        "nodes": [
+            {
+                "mesh": 0,
+                "name": "Mesh"
+            }
+        ],
         "meshes": [
             {
                 "name": mesh.meshName,
@@ -87,7 +109,7 @@ export function toGltfMesh (mesh: SyncMeshData) {
 
         for (let attrName in _attributes) {
             let values = (subMesh as any)[attrName] as number[];
-            if (!values) {
+            if (!values || !values.length) {
                 continue;
             }
 
@@ -135,7 +157,7 @@ export function toGltfMesh (mesh: SyncMeshData) {
 
         for (let attrName in _attributes) {
             let values = (subMesh as any)[attrName] as number[];
-            if (!values) {
+            if (!values || !values.length) {
                 continue;
             }
 

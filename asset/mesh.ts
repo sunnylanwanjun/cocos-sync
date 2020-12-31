@@ -8,6 +8,7 @@ import { register, SyncAsset, SyncAssetData } from './asset';
 export interface SyncSubMeshData {
     vertices: number[];
     uv: number[];
+    uv1: number[];
     normals: number[];
     colors: number[];
     boneWeights: number[];

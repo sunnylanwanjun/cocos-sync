@@ -13,6 +13,6 @@ export class SyncComponent {
 }
 
 export let classes: Map<string, typeof SyncComponent> = new Map();
-export function register(cls: typeof SyncComponent) {
+export function register (cls: typeof SyncComponent) {
     classes.set(cls.clsName, cls);
 }

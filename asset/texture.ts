@@ -40,14 +40,14 @@ export class SyncTexture extends SyncAsset {
                 return console.error(err);
             }
 
-            const channels = 3;
-            const rgbaPixel = 0x000000;
+            const channels = 4;
+            const rgbaPixel = 0x00000000;
             const opts = { raw: { width: image.width, height: image.height, channels } };
 
             let buffer = Buffer.alloc(image.width * image.height * channels, rgbaPixel);
             let datas = image.datas;
             for (let i = 0; i < datas.length; i++) {
-                buffer[i] = datas[i] * 255;
+                buffer[i] = datas[i];
             }
 
             await new Promise((resolve, reject) => {

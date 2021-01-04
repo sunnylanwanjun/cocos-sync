@@ -84,6 +84,7 @@ export interface SyncMaterialData extends SyncAssetData {
     shaderUuid: string;
     properties: SyncMaterialPropertyData[];
     passState: SyncPassStateData;
+    hasLightMap: boolean;
 }
 
 @register
@@ -150,6 +151,8 @@ export class SyncMaterial extends SyncAsset {
         let mtl: Material = await loadAssetByUrl(data.dstUrl) as Material;
 
         let defines: string[] = [];
+        let properties: any = {};
+
         if (hasShader || mtlConfig) {
             let propertyConfigs = mtlConfig && mtlConfig.properties;
             data.properties.forEach(p => {
@@ -208,7 +211,7 @@ export class SyncMaterial extends SyncAsset {
                     if (propertyConfig && propertyConfig.defines) {
                         defines = defines.concat(propertyConfig.defines);
                     }
-                    mtl.setProperty(name, value);
+                    properties[name] = value;
                 }
             })
         }
@@ -222,10 +225,19 @@ export class SyncMaterial extends SyncAsset {
         (mtl as any)._defines.forEach((d: any) => {
             d['USE_INSTANCING'] = true;
 
+            if (data.hasLightMap) {
+                d['USE_LIGHTMAP'] = true;
+                d['HAS_SECOND_UV'] = true;
+            }
+
             defines.forEach(usedDefine => {
                 d[usedDefine] = true;
             })
         })
+
+        for (let name in properties) {
+            mtl.setProperty(name, properties[name]);
+        }
 
         mtlJson = cce.Utils.serialize(mtl);
 

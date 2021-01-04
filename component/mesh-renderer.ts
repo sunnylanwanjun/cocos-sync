@@ -18,13 +18,6 @@ export class SyncMeshRenderer extends SyncComponent {
     static clsName = 'cc.MeshRenderer';
 
     static import (comp: MeshRenderer, data: SyncMeshRendererData) {
-        data.materilas.forEach((uuid, index) => {
-            let m = SyncAssets.get(uuid);
-            if (m) {
-                comp.setMaterial(m as Material, index);
-            }
-        })
-
         let lightmapSetting: SyncLightMapSetting | null = null;
         try {
             lightmapSetting = JSON.parse(data.lightmapSetting);
@@ -38,6 +31,13 @@ export class SyncMeshRenderer extends SyncComponent {
             comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
             (comp as any)._onUpdateLightingmap();
         }
+
+        data.materilas.forEach((uuid, index) => {
+            let m = SyncAssets.get(uuid);
+            if (m) {
+                comp.setMaterial(m as Material, index);
+            }
+        })
 
         let m = SyncAssets.get(data.mesh) as Mesh;
         comp.mesh = m;

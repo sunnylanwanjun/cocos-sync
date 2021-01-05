@@ -1,4 +1,4 @@
-import { Asset, error } from "cc";
+import { Asset, error, log } from "cc";
 import { SyncSceneData } from "../scene";
 import { classes, SyncAssetData } from "./asset";
 
@@ -28,12 +28,14 @@ export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
         let needSync = await cls.needSync(data) || sceneData.forceSyncAsset;
         if (needSync) {
             try {
+                log(`Syncing asset : ${data.path}`);
                 await cls.sync(data, sceneData.assetBasePath);
             }
             catch (err) {
                 error(err);
             }
         }
+
 
         try {
             await cls.load(data);

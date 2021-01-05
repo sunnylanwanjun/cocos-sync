@@ -91,9 +91,9 @@ export function toGltfMesh (mesh: SyncMeshData) {
     let gltfMesh = gltf.meshes[0];
 
     let bufferIndex = 0;
-
-    for (let mi = 0; mi < mesh.subMeshes.length; mi++) {
-        let subMesh = mesh.subMeshes[mi];
+    let subMeshes = mesh.detail && mesh.detail.subMeshes || [];
+    for (let mi = 0; mi < subMeshes.length; mi++) {
+        let subMesh = subMeshes[mi];
 
         let primitive = {
             indices: -1,

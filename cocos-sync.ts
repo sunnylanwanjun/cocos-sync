@@ -14,8 +14,15 @@ import { SyncSceneData } from "./scene";
 
 let _tempQuat = new Quat();
 
+export let CocosSync = {
+    async getDetailData (asset: SyncAssetData): Promise<object | null> {
+        return null;
+    }
+}
+
 if (EDITOR) {
     let app = (window as any).__cocos_sync_io__;
+    let _socket: any;
     if (!app) {
         app = (window as any).__cocos_sync_io__ = io('8877')
         app.on('connection', (socket: any) => {
@@ -26,6 +33,32 @@ if (EDITOR) {
             });
 
             socket.on('sync-datas', syncDataString);
+
+            _socket = socket;
+        })
+    }
+
+    CocosSync.getDetailData = async function getDetailData (asset: SyncAssetData): Promise<object | null> {
+        if (!_socket) {
+            return null;
+        }
+        return new Promise((resolve, reject) => {
+            _socket.emit('get-asset-detail', asset.uuid);
+            _socket.once('get-asset-detail', (uuid: string, dataStr: string) => {
+                if (uuid !== asset.uuid) {
+                    reject(new Error('get-asset-detail failed: uuid not match.'));
+                }
+                let data: any;
+                try {
+                    data = JSON.parse(dataStr);
+                }
+                catch (err) {
+                    reject(err);
+                    return;
+                }
+
+                resolve(data);
+            })
         })
     }
 
@@ -45,6 +78,7 @@ if (EDITOR) {
 
         syncDatas();
     }
+
 
     let _sceneData: SyncSceneData | null = null;
 

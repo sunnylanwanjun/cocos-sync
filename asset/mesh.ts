@@ -1,4 +1,5 @@
 import { IVec3Like } from 'cc';
+import { CocosSync } from '../cocos-sync';
 import { SyncSceneData } from '../scene';
 import { Editor, fse, path, projectAssetPath } from '../utils/editor';
 import { toGltfMesh } from '../utils/gltf';
@@ -19,10 +20,14 @@ export interface SyncSubMeshData {
 export interface SyncMeshData extends SyncAssetData {
     meshName: string;
 
-    subMeshes: SyncSubMeshData[];
-
     min: IVec3Like;
     max: IVec3Like;
+
+    detail: SyncMeshDataDetail;
+}
+
+export interface SyncMeshDataDetail {
+    subMeshes: SyncSubMeshData[];
 }
 
 @register
@@ -39,6 +44,8 @@ export class SyncMesh extends SyncAsset {
     }
 
     static async sync (data: SyncMeshData) {
+        data.detail = await CocosSync.getDetailData(data) as SyncMeshDataDetail;
+
         let gltf = toGltfMesh(data);
 
         fse.ensureDirSync(path.dirname(data.dstPath));

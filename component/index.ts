@@ -1,8 +1,7 @@
 
 import { error, Node, warn } from 'cc';
 import { SyncComponentData, classes } from './component';
-import './mesh-renderer';
-import './terrain';
+
 
 export function sync (data: SyncComponentData, node: Node) {
     let comp = node.getComponent(data.name);

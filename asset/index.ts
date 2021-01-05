@@ -1,5 +1,6 @@
 import { Asset, error, log } from "cc";
 import { SyncSceneData } from "../scene";
+import { path } from '../utils/editor';
 import { classes, SyncAssetData } from "./asset";
 
 import './material';
@@ -25,7 +26,20 @@ export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
     if (cls) {
         cls.calcPath(data, sceneData);
 
-        let needSync = await cls.needSync(data) || sceneData.forceSyncAsset;
+        let forceSyncAsset = false;
+
+        let extnames = sceneData.forceSyncAsset.split(',');
+        extnames.forEach(extname => {
+            if (!extname) return;
+            extname = extname.toLowerCase().replace(/ /g, '');
+
+            let srcExtname = path.extname(data.srcPath).toLowerCase();
+            if (extname === srcExtname) {
+                forceSyncAsset = true;
+            }
+        })
+
+        let needSync = await cls.needSync(data) || forceSyncAsset;
         if (needSync) {
             try {
                 log(`Syncing asset : ${data.path}`);

@@ -161,11 +161,19 @@ if (EDITOR) {
         let total = _sceneData!.assets.length;
         for (let i = 0; i < total; i++) {
             let dataStr = _sceneData!.assets[i];
-            let data: SyncAssetData = JSON.parse(dataStr);
+            let data: SyncAssetData | null = null;
+            try {
+                data = JSON.parse(dataStr);
+            }
+            catch (err) {
+                error(err);
+                continue;
+            }
 
-            log(`Sync asset: ${i} - ${total} - ${data.path}`);
-
-            await SyncAssets.sync(data, _sceneData!);
+            if (data) {
+                log(`Sync asset: ${i} - ${total} - ${data.path}`);
+                await SyncAssets.sync(data, _sceneData!);
+            }
         }
 
         log(`End Sync assets : ${(Date.now() - time) / 1000}s`);
@@ -251,8 +259,16 @@ if (EDITOR) {
         for (let i = 0, l = data.components.length; i < l; i++) {
             _componentCount++;
 
-            let cdata: SyncComponentData = JSON.parse(data.components[i]);
-            if (cdata.name !== SyncMeshRenderer.clsName) {
+            let cdata: SyncComponentData | null = null;
+            try {
+                cdata = JSON.parse(data.components[i]);
+            }
+            catch (err) {
+                error(err);
+                continue;
+            }
+
+            if (cdata!.name !== SyncMeshRenderer.clsName) {
                 continue;
             }
 
@@ -298,8 +314,16 @@ if (EDITOR) {
 
         if (data.components) {
             for (let i = 0, l = data.components.length; i < l; i++) {
-                let cdata: SyncComponentData = JSON.parse(data.components[i]);
-                SyncComponents.sync(cdata, node);
+                let cdata: SyncComponentData | null = null;
+                try {
+                    cdata = JSON.parse(data.components[i]);
+                }
+                catch (err) {
+                    error(err);
+                    continue;
+                }
+
+                SyncComponents.sync(cdata!, node);
                 _componentCount++;
             }
         }

@@ -7,6 +7,6 @@ export interface SyncSceneData {
 
     exportBasePath: string;
     assetBasePath: string;
-    forceSyncAsset: boolean;
+    forceSyncAsset: string;
     assets: string[];
 }

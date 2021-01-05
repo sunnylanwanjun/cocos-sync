@@ -19,11 +19,13 @@ export class SyncMeshRenderer extends SyncComponent {
 
     static import (comp: MeshRenderer, data: SyncMeshRendererData) {
         let lightmapSetting: SyncLightMapSetting | null = null;
-        try {
-            lightmapSetting = JSON.parse(data.lightmapSetting);
-        }
-        catch (err) {
-            console.error(err);
+        if (data.lightmapSetting) {
+            try {
+                lightmapSetting = JSON.parse(data.lightmapSetting);
+            }
+            catch (err) {
+                console.error(err);
+            }
         }
 
         if (lightmapSetting) {

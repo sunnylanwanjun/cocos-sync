@@ -3,7 +3,7 @@ import { SyncNodeData } from "./node";
 export interface SyncSceneData {
     nodeCount: number;
     componentCount: number;
-    children: SyncNodeData[];
+    children: (SyncNodeData | string)[];
 
     exportBasePath: string;
     assetBasePath: string;

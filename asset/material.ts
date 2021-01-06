@@ -44,7 +44,7 @@ const MaterialConfigMap = {
         'properties': {
             '_Color': { name: 'mainColor' },
             '_MainTex': { name: 'albedoMap', defines: ['USE_ALBEDO_MAP'] },
-            '_Cutoff': { name: 'alphaThreshold', defines: ['USE_ALPHA_TEST'] },
+            '_Cutoff': { name: 'alphaThreshold'/*, defines: ['USE_ALPHA_TEST']*/ },
             '_Glossiness': { name: 'smoothness', defines: [] },
             '_Metallic': { name: 'metallic', defines: [] },
             '_MetallicGlossMap': { name: 'metallicGlossMap', defines: ['USE_METAL_SMOOTH_MAP'] },
@@ -85,6 +85,8 @@ export interface SyncMaterialData extends SyncAssetData {
     properties: SyncMaterialPropertyData[];
     passState: SyncPassStateData;
     hasLightMap: boolean;
+    technique: string;
+    defines: string[];
 }
 
 @register
@@ -193,8 +195,15 @@ export class SyncMaterial extends SyncAsset {
                     }
 
                     if (p.type === ShaderPropertyType.Color) {
-                        // hdr color value will big than 1 
-                        let color = new Vec4() as any as Color;
+                        let maxVal = Math.max(value.r, value.g, value.b, value.a);
+                        let color;
+                        if (maxVal > 1) {
+                            // hdr color value will big than 1 
+                            color = new Vec4() as any as Color;
+                        }
+                        else {
+                            color = new Color();
+                        }
                         color.x = value.r;
                         color.y = value.g;
                         color.z = value.b;
@@ -216,25 +225,44 @@ export class SyncMaterial extends SyncAsset {
             })
         }
 
+        // technique
+        let techIdx = mtl.effectAsset?.techniques.findIndex(t => {
+            return t.name === data.technique;
+        })
+        if (techIdx === -1) {
+            techIdx = 0;
+        }
+        (mtl as any)._techIdx = techIdx;
+
+        // pipeline state
         renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
             rasterizerState: {
                 cullMode: data.passState.cullMode
             }
         });
 
+        // defines
         (mtl as any)._defines.forEach((d: any) => {
-            d['USE_INSTANCING'] = true;
-
-            if (data.hasLightMap) {
-                d['USE_LIGHTMAP'] = true;
-                d['HAS_SECOND_UV'] = true;
-            }
 
             defines.forEach(usedDefine => {
                 d[usedDefine] = true;
             })
+
+            data.defines.forEach(dataDefine => {
+                let splits = dataDefine.split('=');
+                let key = splits[0].replace(/ /g, '');
+                let value = splits[1].replace(/ /g, '');
+                d[key] = value;
+            })
+
+            d['USE_LIGHTMAP'] = data.hasLightMap;
+            d['HAS_SECOND_UV'] = data.hasLightMap;
+
+            d['USE_INSTANCING'] = data.technique !== 'transparent';
+            d['USE_ALPHA_TEST'] = false;
         })
 
+        // properties
         for (let name in properties) {
             mtl.setProperty(name, properties[name]);
         }

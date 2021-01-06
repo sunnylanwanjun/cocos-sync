@@ -8,7 +8,7 @@ export interface SyncNodeData {
     scale: IVec3Like;
     eulerAngles: IVec3Like;
 
-    children: SyncNodeData[];
+    children: (SyncNodeData | string)[];
     components: string[];
 
     needMerge: boolean;

@@ -11,6 +11,7 @@ import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
+import { chdir } from 'process';
 
 let _tempQuat = new Quat();
 
@@ -79,6 +80,20 @@ if (EDITOR) {
         syncDatas();
     }
 
+    function getChild (child: string | SyncNodeData): SyncNodeData | null {
+        if (typeof child === 'string') {
+            try {
+                child = JSON.parse(child) as SyncNodeData;
+            }
+            catch (err) {
+                error(err);
+                return null;
+            }
+        }
+
+        return child;
+    }
+
 
     let _sceneData: SyncSceneData | null = null;
 
@@ -104,9 +119,13 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                data.children[i].parentIndex = -1;
-                _rootNodeList.push(data.children[i]);
-                collectNodeData(data.children[i]);
+                let child = getChild(data.children[i]);
+                if (!child) {
+                    continue;
+                }
+                child.parentIndex = -1;
+                _rootNodeList.push(child);
+                collectNodeData(child);
             }
         }
     }
@@ -144,8 +163,12 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                data.children[i].parentIndex = index;
-                collectNodeData(data.children[i]);
+                let child = getChild(data.children[i]);
+                if (!child) {
+                    continue;
+                }
+                child.parentIndex = index;
+                collectNodeData(child);
             }
         }
     }
@@ -288,9 +311,16 @@ if (EDITOR) {
     }
 
     function syncNodeData (data: SyncNodeData, parent: Node | null = null) {
-        parent = parent || director.getScene() as any;
-        let guid = data.uuid;
+        if (!parent) {
+            parent = find('Export_Base');
+            if (!parent) {
+                parent = new Node('Export_Base');
+                parent.setScale(-1, 1, 1);
+                parent.parent = director.getScene() as any;
+            }
+        }
 
+        let guid = data.uuid;
         let provider = GuidProvider.guids.get(guid);
 
         let node: Node;

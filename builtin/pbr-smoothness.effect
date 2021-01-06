@@ -212,8 +212,10 @@ CCProgram standard-fs %{
   #endif
 
   #define OCCLUSION_CHANNEL   g
-  #define SMOOTHNESS_CHANNEL  a
   #define METALLIC_CHANNEL    r
+
+  #define SMOOTH_CHANNEL_Albedo_A     1
+  #define SMOOTH_CHANNEL_Metallic_A   2
 
   vec3 RGBE2Linear (vec4 rgbe) {
     return rgbe.rgb * pow(2.0, rgbe.a * 255.0 - 128.0);
@@ -254,10 +256,19 @@ CCProgram standard-fs %{
     s.position = v_position;
 
     vec4 pbr = pbrParams;
+
+    #if USE_SMOOTH_CHANNEL == SMOOTH_CHANNEL_Albedo_A
+      pbr.y *= s.albedo.a;
+      s.albedo.a = 1.;
+    #endif
+
     #if USE_METAL_SMOOTH_MAP
       vec4 metallicGloss = texture(metallicGlossMap, PBR_UV);
       pbr.z *= metallicGloss.METALLIC_CHANNEL;
-      pbr.y *= metallicGloss.SMOOTHNESS_CHANNEL;
+
+      #if USE_SMOOTH_CHANNEL == SMOOTH_CHANNEL_Metallic_A
+        pbr.y *= metallicGloss.a;
+      #endif
     #endif
 
     #if USE_OCCLUSION_MAP

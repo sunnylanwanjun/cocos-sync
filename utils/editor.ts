@@ -1,5 +1,7 @@
-import { EDITOR } from 'cc/env';
+import { EDITOR as _EDITOR } from 'cc/env';
 import { formatPath } from "./path";
+
+export const EDITOR = _EDITOR;
 
 export const cce = EDITOR && (window as any).cce;
 export const io = EDITOR && (window as any).require('socket.io');

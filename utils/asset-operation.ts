@@ -1,11 +1,9 @@
 import { Asset, assetManager } from "cc";
-import { EDITOR } from "cc/env";
+import { EDITOR, Editor } from './editor';
 
 let _loadAssetByUrl: (filePath: string) => Promise<Asset | null> = async (url: string) => { return null };
 
 if (EDITOR && typeof (window as any).BUILDER === 'undefined') {
-    const Editor = (window as any).Editor;
-
     _loadAssetByUrl = async function loadAssetByUrl (url: string) {
         let assetUid = await Editor.Message.request('asset-db', 'query-uuid', url);
 

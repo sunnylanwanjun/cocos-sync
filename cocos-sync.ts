@@ -1,17 +1,15 @@
 import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, MeshRenderer, Node, Quat, Vec3, warn } from "cc";
-import { EDITOR } from "cc/env";
 import { SyncAssetData } from "./asset/asset";
 
 import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { io } from "./utils/editor";
+import { EDITOR, io } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
-import { chdir } from 'process';
 
 let _tempQuat = new Quat();
 

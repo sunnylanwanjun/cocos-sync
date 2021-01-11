@@ -15,7 +15,6 @@
 #endif
 
 #include <common>
-#include <gamma>
 
 float GGXMobile (float roughness, float NoH, vec3 H, vec3 N) {
   vec3 NxH = cross(N, H);
@@ -56,6 +55,8 @@ struct StandardSurface {
   float occlusion;
 };
 
+#include <./pbr-brdf>
+
 #if CC_FORWARD_ADD
   #include <lighting>
   vec4 CCStandardShading (StandardSurface s) {
@@ -67,7 +68,7 @@ struct StandardSurface {
     vec3 N = normalize(s.normal);
     vec3 V = normalize(cc_cameraPos.xyz - s.position);
     float NV = max(abs(dot(N, V)), 0.001);
-    specular = BRDFApprox(specular, s.roughness, NV);
+    // specular = BRDFApprox(specular, s.roughness, NV);
     vec3 finalColor = vec3(0.0);
 
     for (int i = 0; i < LIGHTS_PER_PASS; i++) {
@@ -76,30 +77,38 @@ struct StandardSurface {
       vec3 SH = normalize(SL + V);
       float SNL = max(dot(N, SL), 0.001);
       float SNH = max(dot(N, SH), 0.0);
+      float SVH = max(dot(V, SH), 0.0);
 
-      float distSqr = dot(SLU, SLU);
-      float litRadius = cc_lightSizeRangeAngle[i].x;
-      float litRadiusSqr = litRadius * litRadius;
-      float illum = PI * (litRadiusSqr / max(litRadiusSqr , distSqr));
-      float attRadiusSqrInv = 1.0 / max(cc_lightSizeRangeAngle[i].y, 0.01);
-      attRadiusSqrInv *= attRadiusSqrInv;
-      float att = GetDistAtt(distSqr, attRadiusSqrInv);
-      vec3 lspec = specular * CalcSpecular(s.roughness, SNH, SH, N);
+      // float distSqr = dot(SLU, SLU);
+      // float litRadius = cc_lightSizeRangeAngle[i].x;
+      // float litRadiusSqr = litRadius * litRadius;
+      // float illum = PI * (litRadiusSqr / max(litRadiusSqr , distSqr));
+      // float attRadiusSqrInv = 1.0 / max(cc_lightSizeRangeAngle[i].y, 0.01);
+      // attRadiusSqrInv *= attRadiusSqrInv;
+      // float att = GetDistAtt(distSqr, attRadiusSqrInv);
 
-      if (cc_lightPos[i].w > 0.0) {
-        float cosInner = max(dot(-cc_lightDir[i].xyz, SL), 0.01);
-        float cosOuter = cc_lightSizeRangeAngle[i].z;
-        float litAngleScale = 1.0 / max(0.001, cosInner - cosOuter);
-        float litAngleOffset = -cosOuter * litAngleScale;
-        att *= GetAngleAtt(SL, -cc_lightDir[i].xyz, litAngleScale, litAngleOffset);
-      }
+      float litRadius = cc_lightSizeRangeAngle[i].y;
+      float att = max(0., 1. - length(SLU) / litRadius);
+      float illum = 1.;
 
-      vec3 lightColor = cc_lightColor[i].rgb;
-    #if CC_RECEIVE_SHADOW
-      if (cc_lightPos[i].w > 0.0) {
-          CC_DIR_SHADOW_FACTOR(lightColor);
-      }
-    #endif
+      // vec3 lspec = specular * CalcSpecular(s.roughness, SNH, SH, N);
+
+      vec3 lspec = SpecularGGX(specular, s.roughness, SNH, SVH, NV, SNL);
+
+      // if (cc_lightPos[i].w > 0.0) {
+      //   float cosInner = max(dot(-cc_lightDir[i].xyz, SL), 0.01);
+      //   float cosOuter = cc_lightSizeRangeAngle[i].z;
+      //   float litAngleScale = 1.0 / max(0.001, cosInner - cosOuter);
+      //   float litAngleOffset = -cosOuter * litAngleScale;
+      //   att *= GetAngleAtt(SL, -cc_lightDir[i].xyz, litAngleScale, litAngleOffset);
+      // }
+
+      vec3 lightColor = (cc_lightColor[i].rgb * cc_lightColor[i].rgb );
+    // #if CC_RECEIVE_SHADOW
+    //   if (cc_lightPos[i].w > 0.0) {
+    //       CC_DIR_SHADOW_FACTOR(lightColor);
+    //   }
+    // #endif
 
       finalColor += SNL * lightColor * cc_lightColor[i].w * illum * att * (diffuseContrib + lspec);
     }
@@ -126,47 +135,8 @@ struct StandardSurface {
     return finalColor;
   }
 
-  // GGX / Trowbridge-Reitz
-  // [Walter et al. 2007, "Microfacet models for refraction through rough surfaces"]
-  float D_GGX( float a2, float NoH )
-  {
-    float d = ( NoH * a2 - NoH ) * NoH + 1.;	// 2 mad
-    return a2 / ( PI*d*d );					// 4 mul, 1 rcp
-  }
-  // Appoximation of joint Smith term for GGX
-  // [Heitz 2014, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"]
-  float Vis_SmithJointApprox( float a2, float NoV, float NoL )
-  {
-    float a = sqrt(a2);
-    float Vis_SmithV = NoL * ( NoV * ( 1. - a ) + a );
-    float Vis_SmithL = NoV * ( NoL * ( 1. - a ) + a );
-    return 0.5 / ( Vis_SmithV + Vis_SmithL );
-  }
-  // [Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"]
-  vec3 F_Schlick( vec3 SpecularColor, float VoH )
-  {
-    float Fc = pow( 1. - VoH, 5. );					// 1 sub, 3 mul
-    //return Fc + (1 - Fc) * SpecularColor;		// 1 add, 3 mad
-    
-    // Anything less than 2% is physically impossible and is instead considered to be shadowing
-    return saturate( 50.0 * SpecularColor.g ) * Fc + (1. - Fc) * SpecularColor;
-    
-  }
-
-  vec3 SpecularGGX(vec3 SpecularColor, float Roughness, float NoH, float VoH, float NoV, float NoL) {
-    float a2 = pow( Roughness, 4. );
-    float Energy = 1.;//EnergyNormalization( a2, VoH, AreaLight );
-    
-    // Generalized microfacet specular
-    float D = D_GGX( a2, NoH ) * Energy;
-    float Vis = Vis_SmithJointApprox( a2, NoV, NoL );
-    vec3 F = F_Schlick( SpecularColor, VoH );
-
-    return (D * Vis) * F;
-  }
-
   vec3 BRDF (StandardSurface s, vec3 diffuse, float NH, float VH, float NV, float NL) {
-    vec3 specularColor = mix(vec3(0.04), s.albedo.rgb, s.metallic);
+    vec3 specularColor = mix(vec3(0.04), s.albedo.rgb, s.metallic) * cc_mainLitColor.rgb;
     
     vec3 finalColor = NL * cc_mainLitColor.rgb * cc_mainLitColor.w;
 
@@ -195,31 +165,31 @@ struct StandardSurface {
     float NV = max(abs(dot(N, V)), 0.001);
     float NL = max(dot(N, L), 0.001);
 
-    vec3 finalColor = BRDFMobile(s, diffuse, N, L, H, V, NV, NH, NL);
-    // vec3 finalColor = BRDF(s, diffuse, NH, VH, NV, NL);
+    // vec3 finalColor = BRDFMobile(s, diffuse, N, L, H, V, NV, NH, NL);
+    vec3 finalColor = BRDF(s, diffuse, NH, VH, NV, NL);
 
-    float fAmb = 0.5 - N.y * 0.5;
-    #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
-      vec3 skyColor = mix(cc_ambientGround.rgb, cc_ambientSky.rgb, s.lightmap.rgb);
-      skyColor = s.lightmap.a * skyColor + (1.0 - s.lightmap.a) * cc_ambientSky.rgb;
-      vec3 ambDiff = mix(skyColor, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
-    #else
-      vec3 ambDiff = mix(cc_ambientSky.rgb, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
-    #endif
-    finalColor += (ambDiff.rgb * diffuse);
+    // float fAmb = 0.5 - N.y * 0.5;
+    // #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
+    //   vec3 skyColor = mix(cc_ambientGround.rgb, cc_ambientSky.rgb, s.lightmap.rgb);
+    //   skyColor = s.lightmap.a * skyColor + (1.0 - s.lightmap.a) * cc_ambientSky.rgb;
+    //   vec3 ambDiff = mix(skyColor, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
+    // #else
+    //   vec3 ambDiff = mix(cc_ambientSky.rgb, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
+    // #endif
+    // finalColor += (ambDiff.rgb * diffuse);
 
-    #if CC_USE_IBL
-      vec3 R = normalize(reflect(-V, N));
-      vec4 envmap = fragTextureLod(cc_environment, R, s.roughness * cc_ambientGround.w);
-      #if CC_USE_IBL == IBL_RGBE
-        vec3 env = unpackRGBE(envmap);
-      #else
-        vec3 env = SRGBToLinear(envmap.rgb);
-      #endif
-      finalColor += env * cc_ambientSky.w * specular;
-    #endif
+    // #if CC_USE_IBL
+    //   vec3 R = normalize(reflect(-V, N));
+    //   vec4 envmap = fragTextureLod(cc_environment, R, s.roughness * cc_ambientGround.w);
+    //   #if CC_USE_IBL == IBL_RGBE
+    //     vec3 env = unpackRGBE(envmap);
+    //   #else
+    //     vec3 env = SRGBToLinear(envmap.rgb);
+    //   #endif
+    //   finalColor += env * cc_ambientSky.w * specular;
+    // #endif
 
-    finalColor = finalColor * s.occlusion;
+    // finalColor = finalColor * s.occlusion;
 
     #if CC_USE_HDR
       s.emissive *= cc_exposure.w;

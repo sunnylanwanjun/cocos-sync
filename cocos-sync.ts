@@ -5,7 +5,7 @@ import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { EDITOR, io, path } from "./utils/editor";
+import { EDITOR, fse, io, path } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
@@ -49,8 +49,7 @@ if (EDITOR) {
                 }
                 let data: any;
                 try {
-                    data = path.join(_sceneData?.projectPath, dataPath);
-                    data = JSON.parse(data);
+                    data = fse.readJSONSync(path.join(_sceneData?.projectPath, dataPath));
                 }
                 catch (err) {
                     reject(err);

@@ -6,6 +6,7 @@ export interface SyncSceneData {
     children: (SyncNodeData | string)[];
 
     exportBasePath: string;
+    projectPath: string;
     assetBasePath: string;
     forceSyncAsset: string;
     assets: string[];

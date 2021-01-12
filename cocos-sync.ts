@@ -5,7 +5,7 @@ import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { EDITOR, io } from "./utils/editor";
+import { EDITOR, io, path } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
@@ -43,13 +43,14 @@ if (EDITOR) {
         }
         return new Promise((resolve, reject) => {
             _socket.emit('get-asset-detail', asset.uuid);
-            _socket.once('get-asset-detail', (uuid: string, dataStr: string) => {
+            _socket.once('get-asset-detail', (uuid: string, dataPath: string) => {
                 if (uuid !== asset.uuid) {
                     reject(new Error('get-asset-detail failed: uuid not match.'));
                 }
                 let data: any;
                 try {
-                    data = JSON.parse(dataStr);
+                    data = path.join(_sceneData?.projectPath, dataPath);
+                    data = JSON.parse(data);
                 }
                 catch (err) {
                     reject(err);

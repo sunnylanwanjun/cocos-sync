@@ -56,6 +56,7 @@ struct StandardSurface {
 };
 
 #include <./pbr-brdf>
+#include <gamma>
 
 #if CC_FORWARD_ADD
   #include <lighting>
@@ -103,7 +104,7 @@ struct StandardSurface {
       //   att *= GetAngleAtt(SL, -cc_lightDir[i].xyz, litAngleScale, litAngleOffset);
       // }
 
-      vec3 lightColor = (cc_lightColor[i].rgb * cc_lightColor[i].rgb );
+      vec3 lightColor = SRGBToLinear(cc_lightColor[i].rgb);
     // #if CC_RECEIVE_SHADOW
     //   if (cc_lightPos[i].w > 0.0) {
     //       CC_DIR_SHADOW_FACTOR(lightColor);
@@ -119,10 +120,12 @@ struct StandardSurface {
   }
 #else
   vec3 BRDFMobile (StandardSurface s, vec3 diffuse, vec3 N, vec3 L, vec3 H, vec3 V, float NV, float NH, float NL) {
+    vec3 lightColor = SRGBToLinear(cc_mainLitColor.rgb);
+
     vec3 specular = mix(vec3(0.04), s.albedo.rgb, s.metallic);
     specular = BRDFApprox(specular, s.roughness, NV);
 
-    vec3 finalColor = NL * cc_mainLitColor.rgb * cc_mainLitColor.w / PI;
+    vec3 finalColor = NL * lightColor * cc_mainLitColor.w / PI;
     #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
       finalColor = s.lightmap.a * s.lightmap.rgb + (1.0 - s.lightmap.a) * finalColor;
     #endif
@@ -136,9 +139,10 @@ struct StandardSurface {
   }
 
   vec3 BRDF (StandardSurface s, vec3 diffuse, float NH, float VH, float NV, float NL) {
-    vec3 specularColor = mix(vec3(0.04), s.albedo.rgb, s.metallic) * cc_mainLitColor.rgb;
-    
-    vec3 finalColor = NL * cc_mainLitColor.rgb * cc_mainLitColor.w;
+    vec3 lightColor = SRGBToLinear(cc_mainLitColor.rgb);
+
+    vec3 specularColor = mix(vec3(0.04), s.albedo.rgb, s.metallic) * lightColor;
+    vec3 finalColor = NL * lightColor * cc_mainLitColor.w;
 
     #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
       finalColor = s.lightmap.a * s.lightmap.rgb + (1.0 - s.lightmap.a) * finalColor;
@@ -168,15 +172,15 @@ struct StandardSurface {
     // vec3 finalColor = BRDFMobile(s, diffuse, N, L, H, V, NV, NH, NL);
     vec3 finalColor = BRDF(s, diffuse, NH, VH, NV, NL);
 
-    // float fAmb = 0.5 - N.y * 0.5;
-    // #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
-    //   vec3 skyColor = mix(cc_ambientGround.rgb, cc_ambientSky.rgb, s.lightmap.rgb);
-    //   skyColor = s.lightmap.a * skyColor + (1.0 - s.lightmap.a) * cc_ambientSky.rgb;
-    //   vec3 ambDiff = mix(skyColor, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
-    // #else
-    //   vec3 ambDiff = mix(cc_ambientSky.rgb, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
-    // #endif
-    // finalColor += (ambDiff.rgb * diffuse);
+    float fAmb = 0.5 - N.y * 0.5;
+    #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
+      vec3 skyColor = mix(cc_ambientGround.rgb, cc_ambientSky.rgb, s.lightmap.rgb);
+      skyColor = s.lightmap.a * skyColor + (1.0 - s.lightmap.a) * cc_ambientSky.rgb;
+      vec3 ambDiff = mix(skyColor, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
+    #else
+      vec3 ambDiff = mix(cc_ambientSky.rgb, cc_ambientGround.rgb, fAmb) * cc_ambientSky.w;
+    #endif
+    finalColor += (ambDiff.rgb * diffuse);
 
     // #if CC_USE_IBL
     //   vec3 R = normalize(reflect(-V, N));

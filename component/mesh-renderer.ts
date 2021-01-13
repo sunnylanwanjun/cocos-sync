@@ -11,6 +11,9 @@ export interface SyncMeshRendererData extends SyncComponentData {
     materilas: string[];
     mesh: string;
     lightmapSetting: string;
+
+    casterShadow: boolean;
+    receiveShadow: boolean;
 }
 
 @register
@@ -18,6 +21,9 @@ export class SyncMeshRenderer extends SyncComponent {
     static clsName = 'cc.MeshRenderer';
 
     static import (comp: MeshRenderer, data: SyncMeshRendererData) {
+        comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
+        comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
+
         let lightmapSetting: SyncLightMapSetting | null = null;
         if (data.lightmapSetting) {
             try {

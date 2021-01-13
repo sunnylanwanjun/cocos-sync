@@ -48,7 +48,7 @@ const MaterialConfigMap = {
             '_Glossiness': { name: 'smoothness', defines: [] },
             '_Metallic': { name: 'metallic', defines: [] },
             '_MetallicGlossMap': { name: 'metallicGlossMap', defines: ['USE_METAL_SMOOTH_MAP'] },
-            '_BumpScale': { name: 'normalStrenth', defines: ['USE_NORMAL_MAP'] },
+            '_BumpScale': { name: 'normalStrenth' },
             '_BumpMap': { name: 'normalMap', defines: ['USE_NORMAL_MAP'] },
             '_OcclusionStrength': { name: 'occlusion', defines: [] },
             '_OcclusionMap': { name: 'occlusionMap', defines: ['USE_OCCLUSION_MAP'] },
@@ -152,11 +152,20 @@ export class SyncMaterial extends SyncAsset {
 
         let mtl: Material = await loadAssetByUrl(data.dstUrl) as Material;
 
-        let defines: string[] = [];
         let properties: any = {};
+        let defines: Record<string, boolean> = {};
 
         if (hasShader || mtlConfig) {
             let propertyConfigs = mtlConfig && mtlConfig.properties;
+            for (let pname in propertyConfigs) {
+                let pdefines = propertyConfigs[pname].defines as string[];
+                if (pdefines) {
+                    pdefines.forEach((pd: string) => {
+                        defines[pd] = false;
+                    })
+                }
+            }
+
             data.properties.forEach(p => {
                 if (!p.value) {
                     return;
@@ -218,7 +227,9 @@ export class SyncMaterial extends SyncAsset {
 
                 if (value !== undefined) {
                     if (propertyConfig && propertyConfig.defines) {
-                        defines = defines.concat(propertyConfig.defines);
+                        propertyConfig.defines.forEach((pd: string) => {
+                            defines[pd] = true;
+                        })
                     }
                     properties[name] = value;
                 }
@@ -243,10 +254,9 @@ export class SyncMaterial extends SyncAsset {
 
         // defines
         (mtl as any)._defines.forEach((d: any) => {
-
-            defines.forEach(usedDefine => {
-                d[usedDefine] = true;
-            })
+            for (let dn in defines) {
+                d[dn] = defines[dn];
+            }
 
             data.defines.forEach(dataDefine => {
                 let splits = dataDefine.split('=');

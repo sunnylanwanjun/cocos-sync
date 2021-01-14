@@ -59,7 +59,7 @@ CCEffect %{
         roughness:      { value: 0.8, target: pbrParams.y }
         metallic:       { value: 0.6, target: pbrParams.z }
         normalStrenth:  { value: 1.0, target: pbrParams.w, editor: { parent: USE_NORMAL_MAP } }
-        emissive:       { value: [0.0, 0.0, 0.0, 1.0], editor: { type: color } }
+        emissive:       { value: [0.0, 0.0, 0.0, 1.0] }
         emissiveScale:  { value: [1.0, 1.0, 1.0], target: emissiveScaleParam.xyz }
         albedoMap:    { value: grey, editor: { displayName: AlbedoMap } }
   - name: transparent

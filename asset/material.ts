@@ -40,8 +40,8 @@ interface MaterialConfig {
 const MaterialConfigMap = {
     // unity standard shader
     "0000000000000000f000000000000000/Standard": {
-        'url': 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl',
-        'properties': {
+        url: 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl',
+        properties: {
             '_Color': { name: 'mainColor' },
             '_MainTex': { name: 'albedoMap', defines: ['USE_ALBEDO_MAP'] },
             '_Cutoff': { name: 'alphaThreshold'/*, defines: ['USE_ALPHA_TEST']*/ },
@@ -66,6 +66,23 @@ const MaterialConfigMap = {
             // '_DetailNormalMapScale': '',
             // '_DetailNormalMap': '',
             // '_UVSec': ''
+        }
+    },
+    "933532a4fcc9baf4fa0491de14d08ed7/Universal Render Pipeline/Lit": {
+        url: 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl',
+        properties: {
+            _BaseColor: { name: 'mainColor' },
+            _BaseMap: { name: 'albedoMap', defines: ['USE_ALBEDO_MAP'] },
+            _Cutoff: { name: 'alphaThreshold'/*, defines: ['USE_ALPHA_TEST']*/ },
+            _Smoothness: { name: 'smoothness', defines: [] },
+            _Metallic: { name: 'metallic', defines: [] },
+            _MetallicGlossMap: { name: 'metallicGlossMap', defines: ['USE_METAL_SMOOTH_MAP'] },
+            _BumpScale: { name: 'normalStrenth' },
+            _BumpMap: { name: 'normalMap', defines: ['USE_NORMAL_MAP'] },
+            _OcclusionStrength: { name: 'occlusion', defines: [] },
+            _OcclusionMap: { name: 'occlusionMap', defines: ['USE_OCCLUSION_MAP'] },
+            _EmissionColor: { name: 'emissive', defines: [] },
+            _EmissionMap: { name: 'emissiveMap', defines: ['USE_EMISSIVE_MAP'] },
         }
     }
 } as Record<string, MaterialConfig>

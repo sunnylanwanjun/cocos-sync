@@ -110,7 +110,7 @@ export interface SyncMaterialData extends SyncAssetData {
 export class SyncMaterial extends SyncAsset {
     static clsName = 'cc.Material';
 
-    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+    static calcPath(data: SyncAssetData, sceneData: SyncSceneData) {
         data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
@@ -118,22 +118,7 @@ export class SyncMaterial extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async save (data: SyncMaterialData, mtl: any) {
-        if (typeof mtl !== 'string') {
-            mtl = JSON.stringify(mtl, null, 4);
-        }
-
-        if (!fse.existsSync(data.dstPath)) {
-            await Editor.Message.request('asset-db', 'create-asset', data.dstUrl, mtl);
-        }
-        else {
-            const uuid = await Editor.Message.request('asset-db', 'query-uuid', data.dstUrl);
-            // await Editor.Message.request('asset-db', 'save-asset', uuid, mtl);
-            await cce.Ipc.send('save-asset', uuid, mtl)
-        }
-    }
-
-    static async sync (data: SyncMaterialData, assetBasePath: string) {
+    static async sync(data: SyncMaterialData, assetBasePath: string) {
         let mtlJson: any;
         let mtlConfig = MaterialConfigMap[data.shaderUuid];
 
@@ -294,9 +279,7 @@ export class SyncMaterial extends SyncAsset {
             mtl.setProperty(name, properties[name]);
         }
 
-        mtlJson = cce.Utils.serialize(mtl);
-
-        await this.save(data, mtlJson);
+        await this.save(data, mtl);
     }
 }
 

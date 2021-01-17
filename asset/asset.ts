@@ -1,8 +1,9 @@
 import { Asset } from 'cc';
 import { EDITOR } from 'cc/env';
+import { type } from 'os';
 import { SyncSceneData } from '../scene';
 import { loadAssetByUrl } from '../utils/asset-operation';
-import { fse, path, projectAssetPath, projectPath } from '../utils/editor';
+import { cce, Editor, fse, path, projectAssetPath, projectPath } from '../utils/editor';
 
 export interface SyncAssetData {
     name: string;
@@ -32,17 +33,17 @@ if (EDITOR) {
 export class SyncAsset {
     static clsName = 'cc.Asset';
 
-    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+    static calcPath(data: SyncAssetData, sceneData: SyncSceneData) {
         data.srcPath = path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async sync (data: SyncAssetData, assetBasePath: string) {
+    static async sync(data: SyncAssetData, assetBasePath: string) {
         data;
     }
 
-    static async needSync (data: SyncAssetData) {
+    static async needSync(data: SyncAssetData) {
         if (data.shouldCheckSrc && !fse.existsSync(data.srcPath)) {
             return false;
         }
@@ -62,12 +63,29 @@ export class SyncAsset {
         return true;
     }
 
-    static async load (data: SyncAssetData) {
+    static async load(data: SyncAssetData) {
         data.asset = await loadAssetByUrl(data.dstUrl);
+    }
+
+    static async save(data: SyncAssetData, asset: Asset | string) {
+        if (asset instanceof Asset) {
+            asset = cce.Utils.serialize(asset);
+        }
+        if (typeof asset !== 'string') {
+            asset = JSON.stringify(asset, null, 4);
+        }
+
+        if (!fse.existsSync(data.dstPath)) {
+            await Editor.Message.request('asset-db', 'create-asset', data.dstUrl, asset);
+        }
+        else {
+            const uuid = await Editor.Message.request('asset-db', 'query-uuid', data.dstUrl);
+            await cce.Ipc.send('save-asset', uuid, asset)
+        }
     }
 }
 
 export const classes: Map<string, typeof SyncAsset> = new Map();
-export function register (cls: typeof SyncAsset) {
+export function register(cls: typeof SyncAsset) {
     classes.set(cls.clsName, cls);
 }

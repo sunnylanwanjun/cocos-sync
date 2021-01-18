@@ -288,17 +288,9 @@ CCProgram standard-fs %{
   vec4 frag () {
     StandardSurface s; surf(s);
     vec4 color = CCStandardShading(s);
-    // color = CC_APPLY_FOG(color, v_fog_factor);
+    color = CC_APPLY_FOG(color, v_fog_factor);
     color = CCFragOutput(color);
-    // color.rgb = LinearToSRGB(color.rgb);
     return color;
-    // #if USE_ALBEDO_MAP
-    // vec4 texColor = texture(albedoMap, ALBEDO_UV);
-    // // texColor.rgb = SRGBToLinear(texColor.rgb);
-    // #else
-    // vec4 texColor = vec4(1.);
-    // #endif
-    // return vec4(texColor.rgb, 1.);
   }
 }%
 

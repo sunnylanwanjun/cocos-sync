@@ -18,6 +18,7 @@ export interface SyncAssetData {
     dstUrl: string;
 
     shouldCheckSrc: boolean;
+    virtualAsset: boolean;
 }
 
 let mtimeConfigsPath: string;
@@ -44,6 +45,9 @@ export class SyncAsset {
     }
 
     static async needSync(data: SyncAssetData) {
+        if (data.virtualAsset) {
+            return true;
+        }
         if (data.shouldCheckSrc && !fse.existsSync(data.srcPath)) {
             return false;
         }

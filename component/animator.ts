@@ -11,7 +11,7 @@ export interface SyncAnimatorData extends SyncComponentData {
 export class SyncAnimator extends SyncComponent {
     static comp = AnimatorComponent;
 
-    static import (comp: AnimatorComponent, data: SyncAnimatorData) {
+    static import(comp: AnimatorComponent, data: SyncAnimatorData) {
         data.clips.forEach(uuid => {
             let clip = SyncAssets.get(uuid) as AnimationClip;
             if (clip) {

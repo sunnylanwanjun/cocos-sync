@@ -1,5 +1,6 @@
 
 import { error, Node, warn } from 'cc';
+import { CocosSync } from '../cocos-sync';
 import { SyncComponentData, classes } from './component';
 
 
@@ -21,5 +22,10 @@ export function sync (data: SyncComponentData, node: Node) {
     let cls = classes.get(data.name);
     if (cls) {
         cls.import(comp, data);
+        if ((cls as any).postImport) {
+            CocosSync.FinishedEvent.on(() => {
+                (cls as any).postImport(comp, data);
+            })
+        }
     }
 }

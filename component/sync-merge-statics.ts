@@ -9,9 +9,9 @@ export interface SyncInstanceObjectData extends SyncComponentData {
 
 @register
 export class SyncInstanceObject extends SyncComponent {
-    static clsName = 'InstanceObject';
+    static comp = 'InstanceObject';
 
-    static import (comp, data: SyncInstanceObjectData) {
+    static import (comp: any, data: SyncInstanceObjectData) {
         comp.clear();
         comp.mergeSize = data.mergeSize;
     }

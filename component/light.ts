@@ -16,7 +16,8 @@ export class SyncLight extends SyncComponent {
 
 @register
 export class SyncSphereLight extends SyncLight {
-    static clsName = 'cc.SphereLight';
+    static comp = SphereLight;
+
     static import (comp: SphereLight, data: SyncLightData) {
         super.import(comp, data);
 

@@ -12,16 +12,17 @@ CCEffect %{
         albedoScale:    { value: [1.0, 1.0, 1.0], target: albedoScaleAndCutoff.xyz }
         alphaThreshold: { value: 0.5, target: albedoScaleAndCutoff.w, editor: { parent: USE_ALPHA_TEST } }
         occlusion:      { value: 1.0, target: pbrParams.x }
-        smoothness:      { value: 1, target: pbrParams.y }
+        smoothness:     { value: 1, target: pbrParams.y }
         metallic:       { value: 1, target: pbrParams.z }
         normalStrenth:  { value: 1.0, target: pbrParams.w, editor: { parent: USE_NORMAL_MAP } }
         emissive:       { value: [0.0, 0.0, 0.0, 1.0] }
         emissiveScale:  { value: [1.0, 1.0, 1.0], target: emissiveScaleParam.xyz }
-        albedoMap:    { value: grey, editor: { displayName: AlbedoMap } }
-        normalMap:      { value: normal       }
-        metallicGlossMap: { value: grey   }
-        occlusionMap:   { value: white        }
-        emissiveMap:    { value: grey         }
+        albedoMap:      { value: grey, editor: { displayName: AlbedoMap } }
+        normalMap:      { value: normal }
+        metallicGlossMap: { value: grey }
+        occlusionMap:   { value: white }
+        emissiveMap:    { value: grey }
+        envMap:         { value: white, editor: { parent: USE_IBL } }
       migrations:
         properties:
           pbrParams: { removeImmediately: true }
@@ -61,7 +62,7 @@ CCEffect %{
         normalStrenth:  { value: 1.0, target: pbrParams.w, editor: { parent: USE_NORMAL_MAP } }
         emissive:       { value: [0.0, 0.0, 0.0, 1.0] }
         emissiveScale:  { value: [1.0, 1.0, 1.0], target: emissiveScaleParam.xyz }
-        albedoMap:    { value: grey, editor: { displayName: AlbedoMap } }
+        albedoMap:      { value: grey, editor: { displayName: AlbedoMap } }
   - name: transparent
     passes:
     - vert: standard-vs:vert
@@ -163,11 +164,13 @@ CCProgram standard-vs %{
 CCProgram standard-fs %{
   precision highp float;
   #include <cc-global>
-  #include <./pbr-standard>
   #include <gamma>
   #include <output-standard>
   #include <shared-ubos>
   #include <cc-fog>
+  
+  #include <./rgbe>
+  #include <./pbr-standard>
 
   #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
     #include <lightingmap-fs>
@@ -217,9 +220,6 @@ CCProgram standard-fs %{
   #define SMOOTH_CHANNEL_Albedo_A     1
   #define SMOOTH_CHANNEL_Metallic_A   2
 
-  vec3 RGBE2Linear (vec4 rgbe) {
-    return rgbe.rgb * pow(2.0, rgbe.a * 255.0 - 128.0);
-  }
 
   void surf (out StandardSurface s) {
     vec4 baseColor = albedo;

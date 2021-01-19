@@ -4,10 +4,14 @@
 #include <cc-global>
 #include <cc-shadow>
 
-#if CC_USE_IBL
-  #include <cc-environment>
-  #include <unpack>
+#if USE_IBL
   #include <texture-lod>
+
+  #define IBL_RGBA 1
+  #define IBL_RGBE 2
+  #pragma define USE_IBL range([0, 2])
+
+  uniform samplerCube envMap;
 #endif
 
 #if CC_RECEIVE_SHADOW
@@ -122,17 +126,17 @@ struct StandardSurface {
   vec3 BRDFMobile (StandardSurface s, vec3 diffuse, vec3 N, vec3 L, vec3 H, vec3 V, float NV, float NH, float NL) {
     vec3 lightColor = SRGBToLinear(cc_mainLitColor.rgb);
 
-    vec3 specular = mix(vec3(0.04), s.albedo.rgb, s.metallic);
-    specular = BRDFApprox(specular, s.roughness, NV);
+    vec3 specularColor = mix(vec3(0.04), s.albedo.rgb, s.metallic);
+    specularColor = BRDFApprox(specularColor, s.roughness, NV);
 
     vec3 finalColor = NL * lightColor * cc_mainLitColor.w / PI;
     #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
-      finalColor = s.lightmap.a * s.lightmap.rgb + (1.0 - s.lightmap.a) * finalColor;
+      finalColor += s.lightmap.rgb;
     #endif
 
     vec3 diffuseContrib = diffuse;
     // Cook-Torrance Microfacet Specular BRDF
-    vec3 specularContrib = specular * CalcSpecular(s.roughness, NH, H, N);
+    vec3 specularContrib = specularColor * CalcSpecular(s.roughness, NH, H, N);
 
     finalColor *= diffuseContrib + specularContrib;
     return finalColor;
@@ -182,16 +186,17 @@ struct StandardSurface {
     #endif
     finalColor += (ambDiff.rgb * diffuse);
 
-    #if CC_USE_IBL
-      vec3 R = normalize(reflect(-V, N));
-      vec4 envmap = fragTextureLod(cc_environment, R, s.roughness * cc_ambientGround.w);
-      #if CC_USE_IBL == IBL_RGBE
-        vec3 env = unpackRGBE(envmap);
-      #else
-        vec3 env = SRGBToLinear(envmap.rgb);
-      #endif
-      finalColor += env * cc_ambientSky.w * specular;
-    #endif
+    // #if USE_IBL
+    //   vec3 R = normalize(reflect(-V, N));
+    //   vec4 envColor = fragTextureLod(envMap, R, s.roughness * cc_ambientGround.w);
+    //   #if USE_IBL == IBL_RGBE
+    //     vec3 env = RGBE2Linear(envColor);
+    //   #else
+    //     vec3 env = SRGBToLinear(envColor.rgb);
+    //   #endif
+    //   float surfaceReduction = 1.0 / ((s.roughness * s.roughness) * 1000. + 1.0);
+    //   finalColor += env * 0.01;
+    // #endif
 
     finalColor = finalColor * s.occlusion;
 

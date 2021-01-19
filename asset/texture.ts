@@ -1,7 +1,13 @@
+import { type } from 'os';
 import { CocosSync } from '../cocos-sync';
 import { SyncSceneData } from '../scene';
 import { Editor, fse, path, projectAssetPath, Sharp } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
+
+enum TextureType {
+    Texture,
+    Cube,
+}
 
 interface SyncTextureDataDetail {
     width: number;
@@ -10,6 +16,7 @@ interface SyncTextureDataDetail {
 }
 
 export interface SyncTextureData extends SyncAssetData {
+    type: TextureType;
     detail: SyncTextureDataDetail;
 }
 
@@ -17,7 +24,7 @@ export interface SyncTextureData extends SyncAssetData {
 export class SyncTexture extends SyncAsset {
     static clsName = 'cc.Texture';
 
-    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+    static calcPath (data: SyncTextureData, sceneData: SyncSceneData) {
         data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         if (!this.supportFormat(data.srcPath)) {
@@ -26,7 +33,12 @@ export class SyncTexture extends SyncAsset {
         }
 
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
-        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}/texture`;
+
+        let subfix = 'texture';
+        if (data.type === TextureType.Cube) {
+            subfix = 'textureCube';
+        }
+        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}/${subfix}`;
     }
 
     static supportFormat (path: string) {
@@ -65,7 +77,19 @@ export class SyncTexture extends SyncAsset {
         else {
             fse.copyFileSync(data.srcPath, data.dstPath);
         }
+
         await Editor.Message.request('asset-db', 'refresh-asset', data.dstUrl);
+
+        if (data.type === TextureType.Cube) {
+            let metaPath = data.dstPath + '.meta';
+            if (fse.existsSync(metaPath)) {
+                let meta = fse.readJSONSync(metaPath);
+                meta.userData.type = 'texture cube';
+                fse.writeJSONSync(metaPath, meta);
+
+                await Editor.Message.request('asset-db', 'refresh-asset', data.dstUrl);
+            }
+        }
     }
 }
 

@@ -10,13 +10,18 @@ import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
+import Event from './utils/event';
 
 let _tempQuat = new Quat();
 
 export let CocosSync = {
     async getDetailData (asset: SyncAssetData): Promise<object | null> {
         return null;
-    }
+    },
+
+    Export_Base: "Export_Base",
+
+    FinishedEvent: new Event(),
 }
 
 if (EDITOR) {
@@ -233,6 +238,8 @@ if (EDITOR) {
             if (++_currentNodeIndex >= _nodeList.length) {
                 finishMerge();
 
+                CocosSync.FinishedEvent.invoke();
+
                 log(`End sync : ${Date.now() - _startTime} ms`);
 
                 clearInterval(_syncIntervalID);
@@ -310,9 +317,9 @@ if (EDITOR) {
 
     function syncNodeData (data: SyncNodeData, parent: Node | null = null) {
         if (!parent) {
-            parent = find('Export_Base');
+            parent = find(CocosSync.Export_Base);
             if (!parent) {
-                parent = new Node('Export_Base');
+                parent = new Node(CocosSync.Export_Base);
                 parent.setScale(-1, 1, 1);
                 parent.parent = director.getScene() as any;
             }

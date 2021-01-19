@@ -1,4 +1,4 @@
-import { Component } from "cc";
+import { Component, js } from "cc";
 
 export interface SyncComponentData {
     uuid: string;
@@ -6,7 +6,7 @@ export interface SyncComponentData {
 }
 
 export class SyncComponent {
-    static clsName = 'cc.Component';
+    static comp: typeof Component | string = Component;
 
     static import (comp: Component, data: SyncComponentData) {
     }
@@ -14,5 +14,9 @@ export class SyncComponent {
 
 export let classes: Map<string, typeof SyncComponent> = new Map();
 export function register (cls: typeof SyncComponent) {
-    classes.set(cls.clsName, cls);
+    let className = cls.comp;
+    if (typeof className !== 'string') {
+        className = js.getClassName(cls.comp);
+    }
+    classes.set(className, cls);
 }

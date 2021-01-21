@@ -12,6 +12,13 @@ export class SyncReflectionProbe extends SyncComponent {
     static comp = ReflectionProbe;
 
     static import (comp: ReflectionProbe, data: SyncReflectionProbeData) {
-        comp.texture = SyncAssets.get(data.bakedTexture) as TextureCube;
+        var asset = SyncAssets.get(data.bakedTexture) as TextureCube;
+
+        if (Array.isArray(asset)) {
+            comp.mipmaps = asset as any as TextureCube[];
+        }
+        else {
+            comp.mipmaps = [asset];
+        }
     }
 }

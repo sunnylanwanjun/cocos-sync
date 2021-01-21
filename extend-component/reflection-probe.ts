@@ -5,5 +5,20 @@ const { ccclass, type } = _decorator;
 @ccclass('sync.ReflectionProbe')
 export class ReflectionProbe extends Component {
     @type(TextureCube)
-    texture: TextureCube | undefined;
+    mipmaps: TextureCube[] = [];
+
+    private _cube: TextureCube | undefined;
+    get cube () {
+        if (!this._cube) {
+            this._cube = new TextureCube();
+            this._cube.mipmaps = this.mipmaps.map(cube => {
+                return cube.mipmaps[0];
+            })
+        }
+        return this._cube;
+    }
+
+    start () {
+        console.log(1);
+    }
 }

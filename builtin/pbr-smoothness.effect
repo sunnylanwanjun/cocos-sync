@@ -22,7 +22,7 @@ CCEffect %{
         metallicGlossMap: { value: grey }
         occlusionMap:   { value: white }
         emissiveMap:    { value: grey }
-        envMap:         { value: white, editor: { parent: USE_IBL } }
+        envMap:         { value: white }
       migrations:
         properties:
           pbrParams: { removeImmediately: true }

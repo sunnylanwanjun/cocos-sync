@@ -1,4 +1,4 @@
-import { Component, TextureCube, Vec3, _decorator } from 'cc';
+import { Component, TextureCube, Vec3, _decorator, __private } from 'cc';
 
 const { ccclass, type } = _decorator;
 
@@ -14,6 +14,7 @@ export class ReflectionProbe extends Component {
             this._cube.mipmaps = this.mipmaps.map(cube => {
                 return cube.mipmaps[0];
             })
+            this._cube.setMipFilter(TextureCube.Filter.LINEAR);
         }
         return this._cube;
     }

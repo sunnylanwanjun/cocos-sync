@@ -2,17 +2,23 @@ import { find, JsonAsset, Material, Mesh, MeshRenderer, Texture2D, Vec4 } from "
 import { SyncComponentData, SyncComponent, register } from "./component";
 import * as SyncAssets from '../asset';
 import { ReflectionProbe } from '../extend-component/reflection-probe';
-import { MeshRendererProbe } from '../extend-component/mesh-renderer-probe';
+import { MeshRendererProbe, ReflectionProbeInfo } from '../extend-component/mesh-renderer-probe';
 import { CocosSync } from '../cocos-sync';
+import { deserializeData } from '../utils/deserialize';
 
 interface SyncLightMapSetting {
     lightmapColor: string;
     uv: Vec4;
 }
 
+interface SyncMeshRendererProbe {
+    probePath: string;
+    weight: number;
+}
+
 export interface SyncMeshRendererData extends SyncComponentData {
     materilas: string[];
-    probes: string[];
+    probes: SyncMeshRendererProbe[];
     mesh: string;
     lightmapSetting: string;
 
@@ -57,20 +63,26 @@ export class SyncMeshRenderer extends SyncComponent {
 
     static postImport (comp: MeshRenderer, data: SyncMeshRendererData) {
         if (data.probes) {
-            data.probes.forEach(probePath => {
-                let node = find(CocosSync.Export_Base + '/' + probePath);
+            let meshRendererProbe = comp.getComponent(MeshRendererProbe);
+            if (!meshRendererProbe) {
+                meshRendererProbe = comp.addComponent(MeshRendererProbe);
+            }
+            meshRendererProbe!.reflectionProbeInfos.length = 0;
+
+            data.probes.forEach(probe => {
+                probe = deserializeData(probe);
+
+                let node = find(CocosSync.Export_Base + '/' + probe.probePath);
                 if (node) {
                     let reflectionProbe = node.getComponent(ReflectionProbe);
                     if (!reflectionProbe) {
                         reflectionProbe = node.addComponent(ReflectionProbe);
                     }
 
-                    let meshRendererProbe = comp.getComponent(MeshRendererProbe);
-                    if (!meshRendererProbe) {
-                        meshRendererProbe = comp.addComponent(MeshRendererProbe);
-                    }
-
-                    meshRendererProbe!.reflectionProbe = reflectionProbe;
+                    let info = new ReflectionProbeInfo();
+                    info.reflectionProbe = reflectionProbe;
+                    info.weight = probe.weight;
+                    meshRendererProbe!.reflectionProbeInfos.push(info);
                 }
             })
         }

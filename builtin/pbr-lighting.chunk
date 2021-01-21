@@ -51,31 +51,31 @@ IndirectLight indirectLight (StandardSurface s, GIInput giInput) {
     indirect.diffuse = vec3(0.);
   #endif
 
-  // #if USE_IBL
+  #if USE_IBL && !CC_FORWARD_ADD
     float perceptualRoughness = s.roughness;
     perceptualRoughness = perceptualRoughness*(1.7 - 0.7*perceptualRoughness);
     float mip = perceptualRoughness * 6.;
+    // float mip = 6.;
 
     vec3 R = normalize(reflect(-giInput.view, giInput.normal));
     vec4 envColor = fragTextureLod(envMap, R, mip);
-    // #if USE_IBL == IBL_RGBE
+    #if USE_IBL == IBL_RGBE
       vec3 env = RGBE2Linear(envColor);
-    // #else
-      // vec3 env = SRGBToLinear(envColor.rgb);
-    // #endif
+    #else
+      vec3 env = SRGBToLinear(envColor.rgb);
+    #endif
     
-    // float surfaceReduction = 1.0 / ((s.roughness * s.roughness) * 1000. + 1.0);
-    indirect.specular = env;// * surfaceReduction;
-  // #else
-  //   indirect.specular = vec3(0.);
-  // #endif
+    indirect.specular = env;
+  #else
+    indirect.specular = vec3(0.);
+  #endif
 
   return indirect;
 }
 
 #define oneMinusDielectricSpec 0.96
 
-GIInput giInput (StandardSurface s) {
+GIInput giInput (StandardSurface s, Light light) {
   GIInput giInput;
 
   giInput.oneMinusReflectivity = oneMinusDielectricSpec - s.metallic * oneMinusDielectricSpec;
@@ -84,15 +84,15 @@ GIInput giInput (StandardSurface s) {
 
   giInput.normal = normalize(s.normal);
   giInput.view = normalize(cc_cameraPos.xyz - s.position);
-  giInput.halfDir = normalize(giInput.normal + giInput.view);
+  giInput.halfDir = normalize(light.direction + giInput.view);
 
   return giInput;
 }
 
 GI fragGI (StandardSurface s) {
   GI gi;
-  gi.giInput = giInput(s);
   gi.light = mainLight();
+  gi.giInput = giInput(s, gi.light);
   gi.indirect = indirectLight(s, gi.giInput);
   return gi;
 }

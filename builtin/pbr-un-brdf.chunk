@@ -89,7 +89,7 @@ vec3 BRDF (StandardSurface s, GI gi) {
   float V = SmithJointGGXVisibilityTerm(NL, NV, roughness);
   float D = GGXTerm(NH, roughness);
 
-  float specularTerm = V * D * PI; // Torrance-Sparrow model, Fresnel is applied later
+  float specularTerm = V * D; // Torrance-Sparrow model, Fresnel is applied later
   
   // specularTerm * nl can be NaN on Metal in some cases, use max() to make sure it's a sane value
   specularTerm = max(0., specularTerm * NL);
@@ -98,16 +98,14 @@ vec3 BRDF (StandardSurface s, GI gi) {
   float surfaceReduction = 1.0 / (roughness*roughness + 1.0);           // fade \in [0.5;1]
 
   // To provide true Lambert lighting, we need to be able to kill specular completely.
-  // specularTerm *= any(specColor) ? 1.0 : 0.0;
+  specularTerm *= (specColor.x != 0. || specColor.y != 0. || specColor.z != 0.) ? 1.0 : 0.0;
 
   float smoothness = 1. - perceptualRoughness;
   float grazingTerm = clamp(smoothness + (1.- giInput.oneMinusReflectivity), 0., 1.);
 
-  // vec3 color =  diffColor * (indirect.diffuse + light.color * diffuseTerm)
-  //   + specularTerm * light.color * FresnelTerm (specColor, LH)
-  //   + surfaceReduction * indirect.specular * FresnelLerp (specColor, vec3(grazingTerm), NV);
-
-  vec3 color = surfaceReduction * indirect.specular * FresnelLerp (specColor, vec3(grazingTerm), NV);
+  vec3 color =  diffColor * (indirect.diffuse + light.color * diffuseTerm)
+    + specularTerm * light.color * FresnelTerm (specColor, LH)
+    + surfaceReduction * indirect.specular * FresnelLerp (specColor, vec3(grazingTerm), NV);
 
   return color;
 }

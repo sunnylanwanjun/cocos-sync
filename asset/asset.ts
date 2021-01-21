@@ -2,7 +2,7 @@ import { Asset } from 'cc';
 import { EDITOR } from 'cc/env';
 import { type } from 'os';
 import { SyncSceneData } from '../scene';
-import { loadAssetByUrl } from '../utils/asset-operation';
+import { AssetOpration } from '../utils/asset-operation';
 import { cce, Editor, fse, path, projectAssetPath, projectPath } from '../utils/editor';
 
 export interface SyncAssetData {
@@ -68,7 +68,7 @@ export class SyncAsset {
     }
 
     static async load(data: SyncAssetData) {
-        data.asset = await loadAssetByUrl(data.dstUrl);
+        data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl);
     }
 
     static async save(data: SyncAssetData, asset: Asset | string) {

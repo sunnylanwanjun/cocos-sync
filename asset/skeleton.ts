@@ -1,7 +1,8 @@
-import { IVec3Like, Mat4, Skeleton } from 'cc';
+import { Asset, IVec3Like, Mat4, Skeleton } from 'cc';
 import { parse } from 'path';
 import { CocosSync } from '../cocos-sync';
 import { SyncSceneData } from '../scene';
+import { AssetOpration } from '../utils/asset-operation';
 import { Editor, fse, path, projectAssetPath } from '../utils/editor';
 import { toGltfMesh } from '../utils/gltf';
 import { formatPath } from '../utils/path';
@@ -38,6 +39,8 @@ export class SyncSkeleton extends SyncAsset {
             skeleton.joints.push(bone);
         })
 
-        this.save(data, skeleton);
+        // this.save(data, skeleton);
+
+        AssetOpration.saveSkeleton(data.dstUrl, skeleton);
     }
 }

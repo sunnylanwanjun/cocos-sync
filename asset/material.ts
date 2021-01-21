@@ -2,7 +2,7 @@ import { Asset, Color, error, gfx, Material, renderer, Texture2D, Vec4 } from "c
 import { type } from 'os';
 import { deserialize } from 'v8';
 import { SyncSceneData } from "../scene";
-import { loadAssetByUrl } from "../utils/asset-operation";
+import { AssetOpration } from "../utils/asset-operation";
 import { cce, Editor, fse, path, projectAssetPath } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
 
@@ -152,7 +152,7 @@ export class SyncMaterial extends SyncAsset {
             await this.save(data, mtlJson);
         }
 
-        let mtl: Material = await loadAssetByUrl(data.dstUrl) as Material;
+        let mtl: Material = await AssetOpration.loadAssetByUrl(data.dstUrl) as Material;
 
         let properties: any = {};
         let defines: Record<string, boolean> = {};

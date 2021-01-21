@@ -1,7 +1,7 @@
 import { type } from 'os';
 import { CocosSync } from '../cocos-sync';
 import { SyncSceneData } from '../scene';
-import { loadAssetByUrl } from '../utils/asset-operation';
+import { AssetOpration } from '../utils/asset-operation';
 import { deserializeData } from '../utils/deserialize';
 import { Editor, fse, path, projectAssetPath, Sharp } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
@@ -37,7 +37,7 @@ export interface SyncTextureData extends SyncAssetData {
 export class SyncTexture extends SyncAsset {
     static clsName = 'cc.Texture';
 
-    static calcPath (data: SyncTextureData, sceneData: SyncSceneData) {
+    static calcPath(data: SyncTextureData, sceneData: SyncSceneData) {
         data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         if (!this.supportFormat(data.srcPath)) {
@@ -54,11 +54,11 @@ export class SyncTexture extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}/${subfix}`;
     }
 
-    static supportFormat (path: string) {
+    static supportFormat(path: string) {
         return path.endsWith('.png') || path.endsWith('.tga');
     }
 
-    static async sync (data: SyncTextureData, assetBasePath: string) {
+    static async sync(data: SyncTextureData, assetBasePath: string) {
         if (!this.supportFormat(data.srcPath)) {
             data.detail = await CocosSync.getDetailData(data) as SyncTextureDataDetail;
         }
@@ -117,16 +117,16 @@ export class SyncTexture extends SyncAsset {
         }
     }
 
-    static async load (data: SyncTextureData) {
+    static async load(data: SyncTextureData) {
         if (data.mipmapCount > 1) {
             data.asset = await Promise.all(new Array(data.mipmapCount).fill(0).map(async (mipmapData, index) => {
                 let subfix = `/mipmap_${index}.png`;
                 let dstUrl = data.dstUrl.replace('/textureCube', subfix + '/textureCube');
-                return await loadAssetByUrl(dstUrl)
+                return await AssetOpration.loadAssetByUrl(dstUrl)
             })) as any;
         }
         else {
-            data.asset = await loadAssetByUrl(data.dstUrl);
+            data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl);
         }
     }
 }

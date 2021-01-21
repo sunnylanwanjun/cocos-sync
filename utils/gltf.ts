@@ -47,6 +47,20 @@ const _attributes = {
         bytesPerElement: 4,
         type: "VEC2"
     },
+    boneWeights: {
+        attr: 'WEIGHTS_0',
+        componentType: 5126,
+        count: 4,
+        bytesPerElement: 4,
+        type: "VEC4"
+    },
+    joints: {
+        attr: 'JOINTS_0',
+        componentType: 5126,
+        count: 4,
+        bytesPerElement: 4,
+        type: "VEC4"
+    },
     indices: {
         componentType: 5123,
         count: 1,
@@ -56,7 +70,7 @@ const _attributes = {
 };
 
 
-export function toGltfMesh (mesh: SyncMeshData) {
+export function toGltfMesh(mesh: SyncMeshData) {
     let gltf = {
         "asset": {
             "generator": "Khronos glTF Blender I/O v1.2.75",

@@ -15,7 +15,7 @@ import Event from './utils/event';
 let _tempQuat = new Quat();
 
 export let CocosSync = {
-    async getDetailData (asset: SyncAssetData): Promise<object | null> {
+    async getDetailData(asset: SyncAssetData): Promise<object | null> {
         return null;
     },
 
@@ -42,7 +42,7 @@ if (EDITOR) {
         })
     }
 
-    CocosSync.getDetailData = async function getDetailData (asset: SyncAssetData): Promise<object | null> {
+    CocosSync.getDetailData = async function getDetailData(asset: SyncAssetData): Promise<object | null> {
         if (!_socket) {
             return null;
         }
@@ -66,7 +66,7 @@ if (EDITOR) {
         })
     }
 
-    async function syncDataString (dataStr: string) {
+    async function syncDataString(dataStr: string) {
         let data: SyncSceneData;
         try {
             data = JSON.parse(dataStr);
@@ -83,10 +83,10 @@ if (EDITOR) {
         syncDatas();
     }
 
-    function getChild (child: string | SyncNodeData): SyncNodeData | null {
-        if (typeof child === 'string') {
+    function getNode(node: string | SyncNodeData): SyncNodeData | null {
+        if (typeof node === 'string') {
             try {
-                child = JSON.parse(child) as SyncNodeData;
+                node = JSON.parse(node) as SyncNodeData;
             }
             catch (err) {
                 error(err);
@@ -94,7 +94,7 @@ if (EDITOR) {
             }
         }
 
-        return child;
+        return node;
     }
 
 
@@ -109,7 +109,7 @@ if (EDITOR) {
     let _nodeList: SyncNodeData[] = [];
     let _rootNodeList: SyncNodeData[] = [];
     let _currentNodeIndex = 0;
-    function collectSceneData (data: SyncSceneData) {
+    function collectSceneData(data: SyncSceneData) {
         _mergeList.length = 0;
         _nodeList.length = 0;
         _rootNodeList.length = 0;
@@ -122,7 +122,7 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                let child = getChild(data.children[i]);
+                let child = getNode(data.children[i]);
                 if (!child) {
                     continue;
                 }
@@ -133,20 +133,21 @@ if (EDITOR) {
         }
     }
 
-    function calcMatrix (data: SyncNodeData) {
+    function calcMatrix(data: SyncNodeData) {
         let parentData = _nodeList[data.parentIndex];
         if (parentData && !parentData.matrix) {
             calcMatrix(parentData);
         }
 
-        Quat.fromEuler(_tempQuat, data.eulerAngles.x, data.eulerAngles.y, data.eulerAngles.z);
-        data.matrix = Mat4.fromRTS(new Mat4, _tempQuat, data.position, data.scale);
+        // Quat.fromEuler(_tempQuat, data.eulerAngles.x, data.eulerAngles.y, data.eulerAngles.z);
+        // data.matrix = Mat4.fromRTS(new Mat4, _tempQuat, data.position, data.scale);
+        data.matrix = Mat4.fromRTS(new Mat4, data.rotation as Quat, data.position, data.scale);
 
         if (parentData) {
             data.matrix = Mat4.multiply(data.matrix, parentData.matrix, data.matrix);
         }
     }
-    function collectNodeData (data: SyncNodeData) {
+    function collectNodeData(data: SyncNodeData) {
         let parentData = _nodeList[data.parentIndex];
         if (parentData) {
             if (parentData.needMerge) {
@@ -166,7 +167,7 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                let child = getChild(data.children[i]);
+                let child = getNode(data.children[i]);
                 if (!child) {
                     continue;
                 }
@@ -177,7 +178,7 @@ if (EDITOR) {
     }
 
 
-    async function syncAssets () {
+    async function syncAssets() {
 
         SyncAssets.clear();
 
@@ -208,7 +209,7 @@ if (EDITOR) {
 
     let _syncIntervalID = -1;
     let _startTime = 0;
-    function syncDatasFrame () {
+    function syncDatasFrame() {
         for (let i = 0; i < 1000; i++) {
             let node = _nodeList[_currentNodeIndex];
             if (node) {
@@ -251,7 +252,7 @@ if (EDITOR) {
         log(`Sync : Progress - ${_currentNodeIndex / _nodeList.length}, NodeCount - ${_currentNodeIndex}`);
         setTimeout(syncDatasFrame, 100);
     }
-    function syncDatas () {
+    function syncDatas() {
         if (_syncIntervalID !== -1) {
             clearInterval(_syncIntervalID);
         }
@@ -264,13 +265,13 @@ if (EDITOR) {
         syncDatasFrame();
     }
 
-    function finishMerge () {
+    function finishMerge() {
         for (let i = 0; i < _mergeList.length; i++) {
             _mergeList[i].rebuild();
         }
     }
 
-    function mergeNodeData (data: SyncNodeData) {
+    function mergeNodeData(data: SyncNodeData) {
         _nodeCount++;
 
         if (!data.components) {
@@ -315,7 +316,7 @@ if (EDITOR) {
         }
     }
 
-    function syncNodeData (data: SyncNodeData, parent: Node | null = null) {
+    function syncNodeData(data: SyncNodeData, parent: Node | null = null) {
         if (!parent) {
             parent = find(CocosSync.Export_Base);
             if (!parent) {
@@ -341,7 +342,8 @@ if (EDITOR) {
         node.parent = parent;
         node.setPosition(data.position as Vec3);
         node.setScale(data.scale as Vec3);
-        node.eulerAngles = data.eulerAngles as Vec3;
+        // node.eulerAngles = data.eulerAngles as Vec3;
+        node.rotation = data.rotation as Quat;
 
         data.node = node;
 

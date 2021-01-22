@@ -1,4 +1,4 @@
-import { IVec3Like, Mat4, Node } from "cc";
+import { IQuatLike, IVec3Like, Mat4, Node } from "cc";
 
 export interface SyncNodeData {
     name: string;
@@ -7,6 +7,7 @@ export interface SyncNodeData {
     position: IVec3Like;
     scale: IVec3Like;
     eulerAngles: IVec3Like;
+    rotation: IQuatLike;
 
     children: (SyncNodeData | string)[];
     components: string[];

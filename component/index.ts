@@ -5,6 +5,10 @@ import { SyncComponentData, classes } from './component';
 
 
 export function sync (data: SyncComponentData, node: Node) {
+    if (!data.name) {
+        return;
+    }
+
     let comp = node.getComponent(data.name);
     if (!comp) {
         try {

@@ -42,7 +42,7 @@ Light mainLight () {
   return mainLight;
 }
 
-IndirectLight indirectLight (StandardSurface s, GIInput giInput) {
+IndirectLight indirectLight (in StandardSurface s, in GIInput giInput) {
   IndirectLight indirect;
 
   #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
@@ -74,23 +74,22 @@ IndirectLight indirectLight (StandardSurface s, GIInput giInput) {
 
 #define oneMinusDielectricSpec 0.96
 
-void preMultiplyAlpha (StandardSurface s, float oneMinusReflectivity)
+void preMultiplyAlpha (inout StandardSurface s, inout vec3 diffuseColor, float oneMinusReflectivity)
 {
     // NOTE: shader relies on pre-multiply alpha-blend (_SrcBlend = One, _DstBlend = OneMinusSrcAlpha)
 
     // Transparency 'removes' from Diffuse component
-    s.albedo.rgb *= s.albedo.a;
+    diffuseColor *= s.albedo.a;
     // Reflectivity 'removes' from the rest of components, including Transparency
     // outAlpha = 1-(1-alpha)*(1-reflectivity) = 1-(oneMinusReflectivity - alpha*oneMinusReflectivity) =
     //          = 1-oneMinusReflectivity + alpha*oneMinusReflectivity
     s.albedo.a = 1. - oneMinusReflectivity + s.albedo.a * oneMinusReflectivity;
 }
 
-GIInput giInput (StandardSurface s, Light light) {
+GIInput giInput (inout StandardSurface s, Light light) {
   GIInput giInput;
 
   float oneMinusReflectivity = oneMinusDielectricSpec - s.metallic * oneMinusDielectricSpec;
-  preMultiplyAlpha(s, oneMinusReflectivity);
 
   giInput.oneMinusReflectivity = oneMinusReflectivity;
   giInput.diffuseColor = s.albedo.rgb * oneMinusReflectivity;
@@ -100,10 +99,12 @@ GIInput giInput (StandardSurface s, Light light) {
   giInput.view = normalize(cc_cameraPos.xyz - s.position);
   giInput.halfDir = normalize(light.direction + giInput.view);
 
+  preMultiplyAlpha(s, giInput.diffuseColor, oneMinusReflectivity);
+
   return giInput;
 }
 
-GI fragGI (StandardSurface s) {
+GI fragGI (inout StandardSurface s) {
   GI gi;
   gi.light = mainLight();
   gi.giInput = giInput(s, gi.light);

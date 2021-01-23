@@ -271,11 +271,13 @@ CCProgram standard-fs %{
       #endif
     #endif
 
+    s.occlusion = pbr.x;
     #if USE_OCCLUSION_MAP
-      pbr.x *= texture(occlusionMap, PBR_UV).OCCLUSION_CHANNEL;
+      s.occlusion = (1. - pbr.x) + texture(occlusionMap, PBR_UV).OCCLUSION_CHANNEL * pbr.x;
+      // pbr.x *= texture(occlusionMap, PBR_UV).OCCLUSION_CHANNEL;
     #endif
     
-    s.occlusion = clamp(pbr.x, 0.0, 0.96);
+    // s.occlusion = clamp(pbr.x, 0.0, 0.96);
     s.roughness = clamp(1. - pbr.y, 0.04, 1.0);
     s.metallic = pbr.z;
 

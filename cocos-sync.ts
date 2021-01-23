@@ -15,7 +15,7 @@ import Event from './utils/event';
 let _tempQuat = new Quat();
 
 export let CocosSync = {
-    async getDetailData(asset: SyncAssetData): Promise<object | null> {
+    async getDetailData (asset: SyncAssetData): Promise<object | null> {
         return null;
     },
 
@@ -42,7 +42,7 @@ if (EDITOR) {
         })
     }
 
-    CocosSync.getDetailData = async function getDetailData(asset: SyncAssetData): Promise<object | null> {
+    CocosSync.getDetailData = async function getDetailData (asset: SyncAssetData): Promise<object | null> {
         if (!_socket) {
             return null;
         }
@@ -66,7 +66,7 @@ if (EDITOR) {
         })
     }
 
-    async function syncDataString(dataStr: string) {
+    async function syncDataString (dataStr: string) {
         let data: SyncSceneData;
         try {
             data = JSON.parse(dataStr);
@@ -83,7 +83,7 @@ if (EDITOR) {
         syncDatas();
     }
 
-    function getNode(node: string | SyncNodeData): SyncNodeData | null {
+    function getNode (node: string | SyncNodeData): SyncNodeData | null {
         if (typeof node === 'string') {
             try {
                 node = JSON.parse(node) as SyncNodeData;
@@ -109,7 +109,7 @@ if (EDITOR) {
     let _nodeList: SyncNodeData[] = [];
     let _rootNodeList: SyncNodeData[] = [];
     let _currentNodeIndex = 0;
-    function collectSceneData(data: SyncSceneData) {
+    function collectSceneData (data: SyncSceneData) {
         _mergeList.length = 0;
         _nodeList.length = 0;
         _rootNodeList.length = 0;
@@ -133,7 +133,7 @@ if (EDITOR) {
         }
     }
 
-    function calcMatrix(data: SyncNodeData) {
+    function calcMatrix (data: SyncNodeData) {
         let parentData = _nodeList[data.parentIndex];
         if (parentData && !parentData.matrix) {
             calcMatrix(parentData);
@@ -147,7 +147,7 @@ if (EDITOR) {
             data.matrix = Mat4.multiply(data.matrix, parentData.matrix, data.matrix);
         }
     }
-    function collectNodeData(data: SyncNodeData) {
+    function collectNodeData (data: SyncNodeData) {
         let parentData = _nodeList[data.parentIndex];
         if (parentData) {
             if (parentData.needMerge) {
@@ -178,7 +178,7 @@ if (EDITOR) {
     }
 
 
-    async function syncAssets() {
+    async function syncAssets () {
 
         SyncAssets.clear();
 
@@ -187,6 +187,8 @@ if (EDITOR) {
 
         let total = _sceneData!.assets.length;
         for (let i = 0; i < total; i++) {
+            let syncTime = Date.now();
+
             let dataStr = _sceneData!.assets[i];
             let data: SyncAssetData | null = null;
             try {
@@ -198,18 +200,19 @@ if (EDITOR) {
             }
 
             if (data) {
-                log(`Sync asset: ${i} - ${total} - ${data.path}`);
+                log(`Begin sync asset: ${i} - ${total} - ${data.path}`);
                 await SyncAssets.sync(data, _sceneData!);
+                log(`End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s `);
             }
         }
 
-        log(`End Sync assets : ${(Date.now() - time) / 1000}s`);
+        log(`End Sync assets: ${(Date.now() - time) / 1000} s`);
     }
 
 
     let _syncIntervalID = -1;
     let _startTime = 0;
-    function syncDatasFrame() {
+    function syncDatasFrame () {
         for (let i = 0; i < 1000; i++) {
             let node = _nodeList[_currentNodeIndex];
             if (node) {
@@ -241,7 +244,7 @@ if (EDITOR) {
 
                 CocosSync.FinishedEvent.invoke();
 
-                log(`End sync : ${Date.now() - _startTime} ms`);
+                log(`End sync: ${Date.now() - _startTime} ms`);
 
                 clearInterval(_syncIntervalID);
                 _syncIntervalID = -1;
@@ -249,10 +252,10 @@ if (EDITOR) {
             }
         }
 
-        log(`Sync : Progress - ${_currentNodeIndex / _nodeList.length}, NodeCount - ${_currentNodeIndex}`);
+        log(`Sync: Progress - ${_currentNodeIndex / _nodeList.length}, NodeCount - ${_currentNodeIndex} `);
         setTimeout(syncDatasFrame, 100);
     }
-    function syncDatas() {
+    function syncDatas () {
         if (_syncIntervalID !== -1) {
             clearInterval(_syncIntervalID);
         }
@@ -265,13 +268,13 @@ if (EDITOR) {
         syncDatasFrame();
     }
 
-    function finishMerge() {
+    function finishMerge () {
         for (let i = 0; i < _mergeList.length; i++) {
             _mergeList[i].rebuild();
         }
     }
 
-    function mergeNodeData(data: SyncNodeData) {
+    function mergeNodeData (data: SyncNodeData) {
         _nodeCount++;
 
         if (!data.components) {
@@ -316,7 +319,7 @@ if (EDITOR) {
         }
     }
 
-    function syncNodeData(data: SyncNodeData, parent: Node | null = null) {
+    function syncNodeData (data: SyncNodeData, parent: Node | null = null) {
         if (!parent) {
             parent = find(CocosSync.Export_Base);
             if (!parent) {

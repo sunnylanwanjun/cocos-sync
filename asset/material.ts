@@ -110,7 +110,7 @@ export interface SyncMaterialData extends SyncAssetData {
 export class SyncMaterial extends SyncAsset {
     static clsName = 'cc.Material';
 
-    static calcPath(data: SyncAssetData, sceneData: SyncSceneData) {
+    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
         data.srcPath = path.join(sceneData.assetBasePath, data.path);
 
         data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
@@ -118,7 +118,7 @@ export class SyncMaterial extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async sync(data: SyncMaterialData, assetBasePath: string) {
+    static async sync (data: SyncMaterialData, assetBasePath: string) {
         let mtlJson: any;
         let mtlConfig = MaterialConfigMap[data.shaderUuid];
 
@@ -270,7 +270,7 @@ export class SyncMaterial extends SyncAsset {
             d['USE_LIGHTMAP'] = data.hasLightMap;
             d['HAS_SECOND_UV'] = data.hasLightMap;
 
-            d['USE_INSTANCING'] = data.technique !== 'transparent';
+            // d['USE_INSTANCING'] = data.technique !== 'transparent';
             d['USE_ALPHA_TEST'] = false;
         })
 

@@ -24,20 +24,21 @@ export function get (uuid: string): Asset | null {
 export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
     let cls = classes.get(data.name);
     if (cls) {
+        // log(`Time 1: ${Date.now() / 1000}`);
+
         cls.calcPath(data, sceneData);
 
         let forceSyncAsset = false;
 
-        let extnames = sceneData.forceSyncAsset.split(',');
-        extnames.forEach(extname => {
-            if (!extname) return;
-            extname = extname.toLowerCase().replace(/ /g, '');
-
-            let srcExtname = path.extname(data.srcPath).toLowerCase();
-            if (extname === srcExtname) {
+        let regs = sceneData.forceSyncAsset.split(',');
+        regs.forEach(reg => {
+            if (!reg) return;
+            if (new RegExp(reg).test(data.srcPath.toLowerCase())) {
                 forceSyncAsset = true;
             }
         })
+
+        // log(`Time 2: ${Date.now() / 1000}`);
 
         let needSync = await cls.needSync(data) || forceSyncAsset;
         if (needSync) {
@@ -50,6 +51,7 @@ export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
             }
         }
 
+        // log(`Time 3: ${Date.now() / 1000}`);
 
         try {
             await cls.load(data);
@@ -57,6 +59,8 @@ export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
         catch (err) {
             error(err);
         }
+
+        // log(`Time 4: ${Date.now() / 1000}`);
     }
 
     map.set(data.uuid, data);

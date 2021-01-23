@@ -3,36 +3,36 @@ import { EDITOR, Editor, fse, path, projectPath } from './editor';
 
 export const AssetOpration = {
 
-    async loadAssetByUrl(url: string): Promise<Asset | null> {
+    async loadAssetByUrl (url: string): Promise<Asset | null> {
         return null;
     },
 
-    async createMesh(filePath: string) {
+    async createMesh (filePath: string) {
         let mesh = new Mesh();
         mesh._setRawAsset('.bin');
         return mesh;
     },
 
-    async saveMesh(filePath: string, mesh: Mesh) {
+    async saveMesh (filePath: string, mesh: Mesh) {
     },
 
-    async saveSkeleton(filePath: string, skeleton: Skeleton) {
+    async saveSkeleton (filePath: string, skeleton: Skeleton) {
     },
 }
 
 if (EDITOR && typeof (window as any).BUILDER === 'undefined') {
-    AssetOpration.loadAssetByUrl = async function loadAssetByUrl(url: string) {
+    AssetOpration.loadAssetByUrl = async function loadAssetByUrl (url: string) {
         let assetUid = await Editor.Message.request('asset-db', 'query-uuid', url);
 
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                assetManager.loadAny(assetUid, (err: any, asset: Asset) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve(asset);
-                });
-            }, 500);
+            // setTimeout(() => {
+            assetManager.loadAny(assetUid, (err: any, asset: Asset) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(asset);
+            });
+            // }, 500);
         })
     }
 
@@ -43,7 +43,7 @@ if (EDITOR && typeof (window as any).BUILDER === 'undefined') {
 
     const tmpdir = os.tmpdir();
 
-    async function zip(target: string, files: string[]) {
+    async function zip (target: string, files: string[]) {
         return new Promise((resolve, reject) => {
             const output = createWriteStream(target);
             const archive = archiver('zip');
@@ -75,7 +75,7 @@ if (EDITOR && typeof (window as any).BUILDER === 'undefined') {
         })
     }
 
-    AssetOpration.saveMesh = async function saveMesh(url: string, mesh: Mesh) {
+    AssetOpration.saveMesh = async function saveMesh (url: string, mesh: Mesh) {
         const filePath = await Editor.Message.request('asset-db', 'query-path', url);
 
         mesh._setRawAsset('.bin');
@@ -107,7 +107,7 @@ if (EDITOR && typeof (window as any).BUILDER === 'undefined') {
         await Editor.Message.request('asset-db', 'refresh-asset', url);
     }
 
-    AssetOpration.saveSkeleton = async function saveSkeleton(url: string, skeleton: Skeleton) {
+    AssetOpration.saveSkeleton = async function saveSkeleton (url: string, skeleton: Skeleton) {
         const filePath = await Editor.Message.request('asset-db', 'query-path', url);
         ensureDirSync(dirname(filePath));
 

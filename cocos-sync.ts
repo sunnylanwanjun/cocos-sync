@@ -324,7 +324,7 @@ if (EDITOR) {
             parent = find(CocosSync.Export_Base);
             if (!parent) {
                 parent = new Node(CocosSync.Export_Base);
-                parent.setScale(-1, 1, 1);
+                // parent.setScale(-1, 1, 1);
                 parent.parent = director.getScene() as any;
             }
         }

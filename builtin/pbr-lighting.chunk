@@ -55,7 +55,6 @@ IndirectLight indirectLight (StandardSurface s, GIInput giInput) {
     float perceptualRoughness = s.roughness;
     perceptualRoughness = perceptualRoughness*(1.7 - 0.7*perceptualRoughness);
     float mip = perceptualRoughness * 6.;
-    // float mip = 6.;
 
     vec3 R = normalize(reflect(-giInput.view, giInput.normal));
     vec4 envColor = fragTextureLod(envMap, R, mip);
@@ -75,11 +74,26 @@ IndirectLight indirectLight (StandardSurface s, GIInput giInput) {
 
 #define oneMinusDielectricSpec 0.96
 
+void preMultiplyAlpha (StandardSurface s, float oneMinusReflectivity)
+{
+    // NOTE: shader relies on pre-multiply alpha-blend (_SrcBlend = One, _DstBlend = OneMinusSrcAlpha)
+
+    // Transparency 'removes' from Diffuse component
+    s.albedo.rgb *= s.albedo.a;
+    // Reflectivity 'removes' from the rest of components, including Transparency
+    // outAlpha = 1-(1-alpha)*(1-reflectivity) = 1-(oneMinusReflectivity - alpha*oneMinusReflectivity) =
+    //          = 1-oneMinusReflectivity + alpha*oneMinusReflectivity
+    s.albedo.a = 1. - oneMinusReflectivity + s.albedo.a * oneMinusReflectivity;
+}
+
 GIInput giInput (StandardSurface s, Light light) {
   GIInput giInput;
 
-  giInput.oneMinusReflectivity = oneMinusDielectricSpec - s.metallic * oneMinusDielectricSpec;
-  giInput.diffuseColor = s.albedo.rgb * giInput.oneMinusReflectivity;
+  float oneMinusReflectivity = oneMinusDielectricSpec - s.metallic * oneMinusDielectricSpec;
+  preMultiplyAlpha(s, oneMinusReflectivity);
+
+  giInput.oneMinusReflectivity = oneMinusReflectivity;
+  giInput.diffuseColor = s.albedo.rgb * oneMinusReflectivity;
   giInput.specColor = mix(vec3(0.04), s.albedo.rgb, s.metallic);
 
   giInput.normal = normalize(s.normal);

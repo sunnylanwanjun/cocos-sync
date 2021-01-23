@@ -95,6 +95,9 @@ export interface SyncMaterialPropertyData {
 
 export interface SyncPassStateData {
     cullMode: gfx.CullMode;
+    blendSrc: number;
+    blendDst: number;
+    zWrite: number;
 }
 
 export interface SyncMaterialData extends SyncAssetData {
@@ -250,8 +253,21 @@ export class SyncMaterial extends SyncAsset {
         // pipeline state
         renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
             rasterizerState: {
-                cullMode: data.passState.cullMode
-            }
+                cullMode: data.passState.cullMode,
+            },
+            // blendState: {
+            //     targets: [
+            //         {
+            //             blendSrc: data.passState.blendSrc,
+            //             blendDst: data.passState.blendDst,
+            //             blendSrcAlpha: data.passState.blendSrc,
+            //             blendDstAlpha: data.passState.blendDst,
+            //         }
+            //     ]
+            // },
+            // depthStencilState: {
+            //     depthWrite: !data.passState.zWrite,
+            // }
         });
 
         // defines

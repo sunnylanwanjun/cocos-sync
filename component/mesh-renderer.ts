@@ -1,4 +1,4 @@
-import { find, JsonAsset, Material, Mesh, MeshRenderer, Texture2D, Vec4 } from "cc";
+import { find, js, JsonAsset, Material, Mesh, MeshRenderer, Texture2D, Vec4 } from "cc";
 import { SyncComponentData, SyncComponent, register } from "./component";
 import * as SyncAssets from '../asset';
 import { ReflectionProbe } from '../extend-component/reflection-probe';
@@ -74,9 +74,9 @@ export class SyncMeshRenderer extends SyncComponent {
 
                 let node = find(CocosSync.Export_Base + '/' + probe.probePath);
                 if (node) {
-                    let reflectionProbe = node.getComponent(ReflectionProbe);
+                    let reflectionProbe = node.getComponent(js.getClassName(ReflectionProbe)) as ReflectionProbe;
                     if (!reflectionProbe) {
-                        reflectionProbe = node.addComponent(ReflectionProbe);
+                        reflectionProbe = node.addComponent(js.getClassName(ReflectionProbe)) as ReflectionProbe;
                     }
 
                     let info = new ReflectionProbeInfo();

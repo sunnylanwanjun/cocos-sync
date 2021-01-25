@@ -1,4 +1,4 @@
-import { animation, AnimationClip, error, IVec3Like } from 'cc';
+import { animation, AnimationClip, error, IVec3Like, Quat, Vec3 } from 'cc';
 import { relative } from 'path';
 import { CocosSync } from '../cocos-sync';
 import { SyncSceneData } from '../scene';
@@ -49,9 +49,9 @@ export class SyncAnimationClip extends SyncAsset {
         let detail = data.detail = await CocosSync.getDetailData(data) as SyncAnimationClipDetail;
 
         if (data.isHuman) {
-            var clip = new AnimationClip(data.clipName);
+            var clip = new AnimationClip();
             clip.sample = data.sample;
-            clip.duration = clip.duration;
+            clip.duration = data.duration;
 
             let curves: AnimationClip.ICurve[] = clip.curves;
 
@@ -59,18 +59,31 @@ export class SyncAnimationClip extends SyncAsset {
             nodeData.curves.forEach(curveData => {
                 let curve = deserializeData(curveData);
 
+                let values = [];
+                let keyframes = curve.keyframes;
+                if (curve.name.endsWith('.translation') || curve.name.endsWith('.scale')) {
+                    for (let i = 0; i < keyframes.length; i += 3) {
+                        values.push(new Vec3(keyframes[i], keyframes[i + 1], keyframes[i + 2]));
+                    }
+                }
+                else if (curve.name.endsWith('rotation')) {
+                    for (let i = 0; i < keyframes.length; i += 4) {
+                        values.push(new Quat(keyframes[i], keyframes[i + 1], keyframes[i + 2], keyframes[i + 3]));
+                    }
+                }
+
                 if (!clip.keys.length) {
                     clip.keys.push(curve.times);
                 }
 
                 curves.push({
                     modifiers: [
-                        new animation.ComponentPath('Avatar'),
+                        new animation.ComponentPath('sync.Avatar'),
                         curve.name,
                     ],
                     data: {
                         keys: 0,
-                        values: curve.keyframes,
+                        values: values
                     },
                 })
             })

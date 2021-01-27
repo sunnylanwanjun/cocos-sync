@@ -30,7 +30,7 @@ export interface SyncMeshRendererData extends SyncComponentData {
 export class SyncMeshRenderer extends SyncComponent {
     static comp = MeshRenderer;
 
-    static import (comp: MeshRenderer, data: SyncMeshRendererData) {
+    static import(comp: MeshRenderer, data: SyncMeshRendererData) {
         comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
         comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
 
@@ -59,9 +59,15 @@ export class SyncMeshRenderer extends SyncComponent {
 
         let m = SyncAssets.get(data.mesh) as Mesh;
         comp.mesh = m;
+
+        if (comp.model && comp.model.subModels) {
+            for (let i = data.materilas.length; i < comp.model!.subModels!.length; i++) {
+                comp.setMaterial(comp.sharedMaterials[0], i);
+            }
+        }
     }
 
-    static postImport (comp: MeshRenderer, data: SyncMeshRendererData) {
+    static postImport(comp: MeshRenderer, data: SyncMeshRendererData) {
         if (data.probes) {
             let meshRendererProbe = comp.getComponent(MeshRendererProbe);
             if (!meshRendererProbe) {

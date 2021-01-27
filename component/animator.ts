@@ -1,4 +1,4 @@
-import { Animation, AnimationClip, js, _decorator } from "cc";
+import { Animation, AnimationClip, js, SkeletalAnimation, _decorator } from "cc";
 import { SyncComponentData, SyncComponent, register } from "./component";
 import * as SyncAssets from '../asset';
 import { AnimatorComponent } from '../extend-component/animator';
@@ -15,11 +15,12 @@ export class SyncAnimator extends SyncComponent {
 
     static import(comp: AnimatorComponent, data: SyncAnimatorData) {
         // animation
-        let animation = comp.getComponent(Animation)!;
+        let animation = comp.getComponent(SkeletalAnimation)!;
         if (!animation) {
-            animation = comp.addComponent(Animation)!;
+            animation = comp.addComponent(SkeletalAnimation)!;
         }
         animation.clips.length = 0;
+        animation.useBakedAnimation = false;
         data.clips.forEach(uuid => {
             let clip = SyncAssets.get(uuid) as AnimationClip;
             if (clip) {

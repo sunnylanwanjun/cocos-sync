@@ -66,10 +66,10 @@ if (EDITOR) {
         })
     }
 
-    async function syncDataString (dataStr: string) {
+    async function syncDataString (dataPath: string) {
         let data: SyncSceneData;
         try {
-            data = JSON.parse(dataStr);
+            data = fse.readJSONSync(dataPath);
         }
         catch (err) {
             error(err);

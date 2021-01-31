@@ -10,16 +10,14 @@ import { register, SyncAsset, SyncAssetData } from './asset';
 
 export interface SyncAnimationCurve {
     name: string;
-    times: number[];
-    keyframes: number[];
-}
-
-export interface SyncAnimationNode {
-    curves: (SyncAnimationCurve | string)[]
+    values: number[];
+    path: string;
+    key: number;
 }
 
 export interface SyncAnimationClipDetail {
-    nodes: (SyncAnimationNode | string)[]
+    curves: SyncAnimationCurve[];
+    keys: (number[])[];
 }
 
 export interface SyncAnimationClipData extends SyncAssetData {
@@ -27,6 +25,7 @@ export interface SyncAnimationClipData extends SyncAssetData {
     isHuman: boolean;
     sample: number;
     duration: number;
+    animName: string;
 
     detail: SyncAnimationClipDetail;
 }
@@ -41,6 +40,8 @@ export class SyncAnimationClip extends SyncAsset {
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
+        basenameNoExt += "/" + data.animName;
+
         data.dstPath = path.join(path.dirname(data.dstPath), basenameNoExt + '.anim');
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
@@ -52,10 +53,42 @@ export class SyncAnimationClip extends SyncAsset {
             var clip = new AnimationClip();
             clip.sample = data.sample;
             clip.duration = data.duration;
+            clip.wrapMode = AnimationClip.WrapMode.Loop;
 
             let curves: AnimationClip.ICurve[] = clip.curves;
 
-            let nodeData = deserializeData(detail.nodes[0]);
+            let curveList = deserializeData(detail.curves);
+            clip.keys = deserializeData(detail.keys);
+
+            curveList.forEach(curveData => {
+                let curve = deserializeData(curveData);
+
+                let valuesData = curve.values;
+                let values = [];
+                if (curve.name == 'position' || curve.name == 'scale') {
+                    for (let i = 0; i < valuesData.length; i += 3) {
+                        values.push(new Vec3(valuesData[i], valuesData[i + 1], valuesData[i + 2]));
+                    }
+                }
+                else if (curve.name == 'rotation') {
+                    for (let i = 0; i < valuesData.length; i += 4) {
+                        values.push(new Quat(valuesData[i], valuesData[i + 1], valuesData[i + 2], valuesData[i + 3]));
+                    }
+                }
+
+                curves.push({
+                    modifiers: [
+                        new animation.HierarchyPath(curve.path),
+                        curve.name,
+                    ],
+                    data: {
+                        keys: curve.key,
+                        values: values
+                    },
+                })
+            });
+
+            /*
             nodeData.curves.forEach(curveData => {
                 let curve = deserializeData(curveData);
 
@@ -86,7 +119,7 @@ export class SyncAnimationClip extends SyncAsset {
                         values: values
                     },
                 })
-            })
+            })*/
 
             await this.save(data, clip);
         }

@@ -27,6 +27,9 @@ export class SyncAnimator extends SyncComponent {
                 animation.clips.push(clip);
             }
         })
+        if (animation.clips.length > 0) {
+            animation.defaultClip = animation.clips[0];
+        }
 
         // avatar
         let avatar = comp.getComponent(js.getClassName(Avatar)) as Avatar;

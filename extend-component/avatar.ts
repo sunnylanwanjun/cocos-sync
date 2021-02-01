@@ -1,4 +1,4 @@
-import { Vec3, _decorator, Component, find, js, Quat } from "cc";
+import { Vec3, _decorator, Component, find, js, Quat, gfx } from "cc";
 import { EDITOR } from "cc/env";
 
 const { ccclass, type, property, executeInEditMode } = _decorator;

@@ -1,8 +1,8 @@
-import { find, Skeleton, SkinnedMeshRenderer } from "cc";
+import { find, SkeletalAnimation, Skeleton, SkinnedMeshRenderer } from "cc";
 import * as SyncAssets from '../asset';
+import { CocosSync } from "../cocos-sync";
 import { register } from "./component";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./mesh-renderer";
-import { CocosSync } from '../cocos-sync';
 
 export interface SyncSkinnedMeshRendererData extends SyncMeshRendererData {
     skeleton: string
@@ -20,11 +20,14 @@ export class SyncSkinnedMeshRenderer extends SyncMeshRenderer {
     }
 
     static postImport(comp: SkinnedMeshRenderer, data: SyncSkinnedMeshRendererData) {
-        super.postImport(comp, data);
 
         let rootBone = find(CocosSync.Export_Base + '/' + data.rootBonePath);
         if (rootBone) {
             comp.skinningRoot = rootBone;
         }
+
+        comp.skinningRoot = rootBone;
+
+        super.postImport(comp, data);
     }
 }

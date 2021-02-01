@@ -12,7 +12,7 @@ import { register, SyncAsset, SyncAssetData } from './asset';
 
 export interface SyncSkeletonData extends SyncAssetData {
     bones: string[];
-    matrices: string[];
+    bindposes: string[];
 }
 
 @register
@@ -31,8 +31,8 @@ export class SyncSkeleton extends SyncAsset {
     static async sync(data: SyncSkeletonData) {
         let skeleton = new Skeleton;
 
-        data.matrices.forEach(mat => {
-            let mats = mat.split('\t').map(m => parseFloat(m));
+        data.bindposes.forEach(mat => {
+            let mats = mat.split(',').map(m => parseFloat(m));
             skeleton.bindposes.push(Mat4.fromArray(new Mat4, mats));
         })
         data.bones.forEach(bone => {
@@ -41,6 +41,6 @@ export class SyncSkeleton extends SyncAsset {
 
         // this.save(data, skeleton);
 
-        AssetOpration.saveSkeleton(data.dstUrl, skeleton);
+        await AssetOpration.saveSkeleton(data.dstUrl, skeleton);
     }
 }

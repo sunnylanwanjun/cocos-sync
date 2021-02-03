@@ -1,4 +1,5 @@
 import { IQuatLike, IVec3Like, Mat4, Node } from "cc";
+import { SyncComponentData } from './component/component';
 
 export interface SyncNodeData {
     name: string;
@@ -10,7 +11,7 @@ export interface SyncNodeData {
     rotation: IQuatLike;
 
     children: (SyncNodeData | string)[];
-    components: string[];
+    components: (SyncComponentData | string)[];
 
     needMerge: boolean;
 

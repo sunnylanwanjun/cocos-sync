@@ -1,11 +1,11 @@
-import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, MeshRenderer, Node, Quat, Vec3, warn } from "cc";
+import { director, error, find, IVec3Like, js, log, Mat4, Material, Mesh, MeshRenderer, Node, Quat, Vec3, warn } from "cc";
 import { SyncAssetData } from "./asset/asset";
 
 import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { EDITOR, fse, io, path } from "./utils/editor";
+import { EDITOR, fse, io, path, ws } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
@@ -25,30 +25,81 @@ export let CocosSync = {
 }
 
 if (EDITOR) {
-    let app = (window as any).__cocos_sync_io__;
-    let _socket: any;
-    if (!app) {
-        app = (window as any).__cocos_sync_io__ = io('8877')
-        app.on('connection', (socket: any) => {
-            log('CocosSync Connected!');
+    let _ioApp = (window as any).__cocos_sync_io__;
+    let _ioSocket: any;
+    if (!_ioApp) {
+        _ioApp = (window as any).__cocos_sync_io__ = io('8877')
+        _ioApp.on('connection', (socket: any) => {
+            log('CocosSync SocketIO Connected!');
 
             socket.on('disconnect', () => {
-                log('CocosSync Disconnected!');
+                log('CocosSync SocketIO Disconnected!');
             });
 
-            socket.on('sync-datas', syncDataString);
+            socket.on('sync-datas-with-file', syncDataFile);
 
-            _socket = socket;
+            _ioSocket = socket;
         })
     }
 
+    let _wsApp = (window as any).__cocos_sync_ws__;
+    let _wsSocket: any;
+    if (!_wsApp) {
+        _wsApp = (window as any).__cocos_sync_ws__ = new ws.Server({
+            port: 8878
+        })
+        _wsApp.on('connection', function connection (ws: any) {
+            log('CocosSync WebSocket Connected!');
+
+            ws.on('close', function close () {
+                console.log('CocosSync WebSocket disconnected');
+            });
+            // ws.on('sync-datas', syncDataString);
+
+            ws.on('message', function (msg: any) {
+                if (msg instanceof Buffer) {
+                    let str = '';
+                    let u16 = new Uint16Array(msg.buffer);
+                    let started = false;
+                    let jsonStartCode = '{'.charCodeAt(0);
+                    for (let i = 0; i < u16.length; i++) {
+                        if (!started) {
+                            if (u16[i] === jsonStartCode) {
+                                started = true;
+                            }
+                        }
+                        if (!started) {
+                            continue;
+                        }
+                        str += String.fromCharCode(u16[i]);
+                    }
+                    msg = str;
+                }
+
+                try {
+                    msg = JSON.parse(msg);
+                }
+                catch (err) {
+                    console.error(err);
+                    return;
+                }
+
+                if (msg.msg === 'sync-datas') {
+                    syncSceneData(msg.data);
+                }
+                // console.log('CocosSync OnMessage : ' + data);
+            })
+
+            _wsSocket = ws;
+        });
+    }
+
     CocosSync.getDetailData = async function getDetailData (asset: SyncAssetData): Promise<object | null> {
-        if (!_socket) {
+        if (!_ioSocket && !_wsSocket) {
             return null;
         }
         return new Promise((resolve, reject) => {
-            _socket.emit('get-asset-detail', asset.uuid);
-            _socket.once('get-asset-detail', (uuid: string, dataPath: string) => {
+            function getAssetDetil (uuid: string, dataPath: string) {
                 if (uuid !== asset.uuid) {
                     reject(new Error('get-asset-detail failed: uuid not match.'));
                 }
@@ -62,11 +113,20 @@ if (EDITOR) {
                 }
 
                 resolve(data);
-            })
+            }
+
+            if (_ioSocket) {
+                _ioSocket.emit('get-asset-detail', asset.uuid);
+                _ioSocket.once('get-asset-detail', getAssetDetil);
+            }
+            else if (_wsSocket) {
+                _wsSocket.send('get-asset-detail', asset.uuid);
+                _wsSocket.once('get-asset-detail', getAssetDetil);
+            }
         })
     }
 
-    async function syncDataString (dataPath: string) {
+    async function syncDataFile (dataPath: string) {
         let data: SyncSceneData;
         try {
             data = fse.readJSONSync(dataPath);
@@ -76,6 +136,10 @@ if (EDITOR) {
             return;
         }
 
+        await syncSceneData(data);
+    }
+
+    async function syncSceneData (data: SyncSceneData) {
         collectSceneData(data);
 
         await syncAssets();
@@ -83,10 +147,10 @@ if (EDITOR) {
         syncDatas();
     }
 
-    function getNode (node: string | SyncNodeData): SyncNodeData | null {
+    function getData<T> (node: string | T): T | null {
         if (typeof node === 'string') {
             try {
-                node = JSON.parse(node) as SyncNodeData;
+                node = JSON.parse(node) as T;
             }
             catch (err) {
                 error(err);
@@ -122,7 +186,7 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                let child = getNode(data.children[i]);
+                let child = getData(data.children[i]);
                 if (!child) {
                     continue;
                 }
@@ -167,7 +231,7 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                let child = getNode(data.children[i]);
+                let child = getData(data.children[i]);
                 if (!child) {
                     continue;
                 }
@@ -291,16 +355,11 @@ if (EDITOR) {
         for (let i = 0, l = data.components.length; i < l; i++) {
             _componentCount++;
 
-            let cdata: SyncComponentData | null = null;
-            try {
-                cdata = JSON.parse(data.components[i]);
-            }
-            catch (err) {
-                error(err);
+            let cdata = getData(data.components[i]);
+            if (!cdata) {
                 continue;
             }
-
-            if (cdata!.name !== SyncMeshRenderer.clsName) {
+            if (cdata.name !== js.getClassName(SyncMeshRenderer.comp)) {
                 continue;
             }
 
@@ -354,16 +413,12 @@ if (EDITOR) {
 
         if (data.components) {
             for (let i = 0, l = data.components.length; i < l; i++) {
-                let cdata: SyncComponentData | null = null;
-                try {
-                    cdata = JSON.parse(data.components[i]);
-                }
-                catch (err) {
-                    error(err);
+                let cdata = getData(data.components[i]);
+                if (!cdata) {
                     continue;
                 }
 
-                SyncComponents.sync(cdata!, node);
+                SyncComponents.sync(cdata, node);
                 _componentCount++;
             }
         }

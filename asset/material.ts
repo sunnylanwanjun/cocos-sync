@@ -126,7 +126,7 @@ export class SyncMaterial extends SyncAsset {
     static clsName = 'cc.Material';
 
     static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);

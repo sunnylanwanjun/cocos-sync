@@ -36,8 +36,8 @@ export interface SyncAnimationClipData extends SyncAssetData {
 export class SyncAnimationClip extends SyncAsset {
     static clsName = 'SyncAnimationClip';
 
-    static calcPath(data: SyncAnimationClipData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+    static calcPath (data: SyncAnimationClipData, sceneData: SyncSceneData) {
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
@@ -45,7 +45,7 @@ export class SyncAnimationClip extends SyncAsset {
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
 
-    static async sync(data: SyncAnimationClipData) {
+    static async sync (data: SyncAnimationClipData) {
         let detail = data.detail = await CocosSync.getDetailData(data) as SyncAnimationClipDetail;
 
         if (data.isHuman) {

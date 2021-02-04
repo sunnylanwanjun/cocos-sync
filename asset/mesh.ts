@@ -35,7 +35,7 @@ export class SyncMesh extends SyncAsset {
     static clsName = 'cc.Mesh';
 
     static calcPath (data: SyncMeshData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');

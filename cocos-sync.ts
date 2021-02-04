@@ -42,6 +42,36 @@ if (EDITOR) {
         })
     }
 
+    function getWsMessage (msg: any) {
+        if (msg instanceof Buffer) {
+            let str = '';
+            let u16 = new Uint16Array(msg.buffer);
+            let started = false;
+            let jsonStartCode = '{'.charCodeAt(0);
+            for (let i = 0; i < u16.length; i++) {
+                if (!started) {
+                    if (u16[i] === jsonStartCode) {
+                        started = true;
+                    }
+                }
+                if (!started) {
+                    continue;
+                }
+                str += String.fromCharCode(u16[i]);
+            }
+            msg = str;
+        }
+
+        try {
+            msg = JSON.parse(msg);
+        }
+        catch (err) {
+            console.error(err);
+            return;
+        }
+        return msg;
+    }
+
     let _wsApp = (window as any).__cocos_sync_ws__;
     let _wsSocket: any;
     if (!_wsApp) {
@@ -57,32 +87,7 @@ if (EDITOR) {
             // ws.on('sync-datas', syncDataString);
 
             ws.on('message', function (msg: any) {
-                if (msg instanceof Buffer) {
-                    let str = '';
-                    let u16 = new Uint16Array(msg.buffer);
-                    let started = false;
-                    let jsonStartCode = '{'.charCodeAt(0);
-                    for (let i = 0; i < u16.length; i++) {
-                        if (!started) {
-                            if (u16[i] === jsonStartCode) {
-                                started = true;
-                            }
-                        }
-                        if (!started) {
-                            continue;
-                        }
-                        str += String.fromCharCode(u16[i]);
-                    }
-                    msg = str;
-                }
-
-                try {
-                    msg = JSON.parse(msg);
-                }
-                catch (err) {
-                    console.error(err);
-                    return;
-                }
+                msg = getWsMessage(msg);
 
                 if (msg.msg === 'sync-datas') {
                     syncSceneData(msg.data);
@@ -91,6 +96,7 @@ if (EDITOR) {
             })
 
             _wsSocket = ws;
+            window._wsSocket = ws;
         });
     }
 
@@ -120,8 +126,20 @@ if (EDITOR) {
                 _ioSocket.once('get-asset-detail', getAssetDetil);
             }
             else if (_wsSocket) {
-                _wsSocket.send('get-asset-detail', asset.uuid);
-                _wsSocket.once('get-asset-detail', getAssetDetil);
+                function callback (msg: any) {
+                    msg = getWsMessage(msg);
+
+                    if (msg.msg === 'get-asset-detail') {
+                        getAssetDetil(msg.data.uuid, msg.data.path);
+                        _wsSocket.off('message', callback);
+                    }
+                }
+
+                _wsSocket.send(JSON.stringify({
+                    msg: 'get-asset-detail',
+                    uuid: asset.uuid
+                }));
+                _wsSocket.on('message', callback);
             }
         })
     }
@@ -248,20 +266,14 @@ if (EDITOR) {
 
         let time = Date.now();
         log('Begin Sync assets...');
+        if (!_sceneData) {
+            return;
+        }
 
-        let total = _sceneData!.assets.length;
+        let total = _sceneData.assets.length;
         for (let i = 0; i < total; i++) {
             let syncTime = Date.now();
-
-            let dataStr = _sceneData!.assets[i];
-            let data: SyncAssetData | null = null;
-            try {
-                data = JSON.parse(dataStr);
-            }
-            catch (err) {
-                error(err);
-                continue;
-            }
+            let data = getData(_sceneData.assets[i]);
 
             if (data) {
                 log(`Begin sync asset: ${i} - ${total} - ${data.path}`);

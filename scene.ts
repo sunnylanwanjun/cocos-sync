@@ -1,3 +1,4 @@
+import { SyncAssetData } from './asset/asset';
 import { SyncNodeData } from "./node";
 
 export interface SyncSceneData {
@@ -9,5 +10,5 @@ export interface SyncSceneData {
     projectPath: string;
     assetBasePath: string;
     forceSyncAsset: string;
-    assets: string[];
+    assets: (SyncAssetData | string)[];
 }

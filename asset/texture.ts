@@ -38,7 +38,7 @@ export class SyncTexture extends SyncAsset {
     static clsName = 'cc.Texture';
 
     static calcPath (data: SyncTextureData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         if (!this.supportFormat(data.srcPath)) {
             let basenameNoExt = path.basename(data.path).replace(path.extname(data.path), '');

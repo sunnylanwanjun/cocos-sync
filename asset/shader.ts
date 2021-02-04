@@ -10,7 +10,7 @@ export class SyncShader extends SyncAsset {
     static clsName = 'cc.Shader';
 
     static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         let extname: string = path.extname(data.path);
         data.path = data.path.replace(extname, '') + '.effect';

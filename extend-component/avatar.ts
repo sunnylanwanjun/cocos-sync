@@ -239,35 +239,7 @@ export class Avatar extends Component {
     @property
     avatarMap: string[] = [];
 
-    @property
-    needStoreClipToAvatar = false;
-
-    private _avatarToIdx: Map<string, number> = new Map();
-    public static clipToAvatar: Map<string, Component> = new Map();
-
-    getBoneIndex (bonePath: string) {
-        return this._avatarToIdx.get(bonePath);
-    }
-
-    getBonePath (boneIndex: number) {
-        return this.avatarMap[boneIndex];
-    }
-
     onLoad() {
-        for (let i = 0, c = this.avatarMap.length; i < c; i++) {
-            this._avatarToIdx.set(this.avatarMap[i], i);
-        }
-
-        if (this.needStoreClipToAvatar) {
-            let animation = this.getComponent(Animation);
-            if (animation) {
-                let clips = animation.clips;
-                for (let i = 0, c = clips.length; i < c; i++) {
-                    let uuid = clips[i]?._uuid;
-                    Avatar.clipToAvatar.set(uuid!, this);
-                }
-            }
-        }
 
         for (let i = 0; i < HumanBodyBones.LastBone; i++) {
             let bonePath = this.avatarMap[i];

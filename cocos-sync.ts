@@ -46,17 +46,8 @@ if (EDITOR) {
         if (msg instanceof Buffer) {
             let str = '';
             let u16 = new Uint16Array(msg.buffer);
-            let started = false;
-            let jsonStartCode = '{'.charCodeAt(0);
-            for (let i = 0; i < u16.length; i++) {
-                if (!started) {
-                    if (u16[i] === jsonStartCode) {
-                        started = true;
-                    }
-                }
-                if (!started) {
-                    continue;
-                }
+            let starteIndex = 4 + 2; // 64 bytes header + 32 bytes for message length
+            for (let i = starteIndex; i < u16.length; i++) {
                 str += String.fromCharCode(u16[i]);
             }
             msg = str;
@@ -70,6 +61,20 @@ if (EDITOR) {
             return;
         }
         return msg;
+    }
+
+    function sendWsMessage (msg: object) {
+        let str = JSON.stringify(msg);
+        let starteIndex = 2; // 32 bytes for message length
+        let u16 = new Uint16Array(str.length + starteIndex);
+        let u32 = new Uint32Array(u16.buffer, 0, 1);
+        u32[0] = str.length * 2;
+
+        for (let i = 0; i < str.length; i++) {
+            u16[i + starteIndex] = str.charCodeAt(i);
+        }
+
+        _wsSocket.send(u16);
     }
 
     let _wsApp = (window as any).__cocos_sync_ws__;
@@ -135,10 +140,10 @@ if (EDITOR) {
                     }
                 }
 
-                _wsSocket.send(JSON.stringify({
+                sendWsMessage({
                     msg: 'get-asset-detail',
                     uuid: asset.uuid
-                }));
+                });
                 _wsSocket.on('message', callback);
             }
         })

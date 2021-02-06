@@ -101,7 +101,6 @@ if (EDITOR) {
             })
 
             _wsSocket = ws;
-            window._wsSocket = ws;
         });
     }
 
@@ -116,7 +115,10 @@ if (EDITOR) {
                 }
                 let data: any;
                 try {
-                    data = fse.readJSONSync(path.join(_sceneData?.projectPath, dataPath));
+                    if (!path.isAbsolute(dataPath)) {
+                        dataPath = path.join(_sceneData?.projectPath, dataPath)
+                    }
+                    data = fse.readJSONSync(dataPath);
                 }
                 catch (err) {
                     reject(err);

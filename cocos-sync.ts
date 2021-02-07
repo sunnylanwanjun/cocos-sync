@@ -421,10 +421,12 @@ if (EDITOR) {
         }
 
         node.parent = parent;
-        node.setPosition(data.position as Vec3);
-        node.setScale(data.scale as Vec3);
-        // node.eulerAngles = data.eulerAngles as Vec3;
-        node.rotation = data.rotation as Quat;
+        // node.setScale(data.scale as Vec3);
+        // // node.eulerAngles = data.eulerAngles as Vec3;
+        // node.rotation = data.rotation as Quat;
+        // node.setPosition(data.position as Vec3);
+
+        node.setRTS(data.rotation as Quat, data.position as Vec3, data.scale as Vec3);
 
         data.node = node;
 

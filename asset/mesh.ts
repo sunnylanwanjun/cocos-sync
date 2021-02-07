@@ -27,6 +27,9 @@ export interface SyncMeshData extends SyncAssetData {
 }
 
 export interface SyncMeshDataDetail {
+    min: IVec3Like;
+    max: IVec3Like;
+    
     subMeshes: SyncSubMeshData[];
 }
 

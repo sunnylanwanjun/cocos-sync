@@ -146,8 +146,8 @@ export function toGltfMesh(mesh: SyncMeshData) {
             };
 
             if (attrDef === _attributes.vertices) {
-                accessor.min = Vec3.toArray([], mesh.min);
-                accessor.max = Vec3.toArray([], mesh.max);
+                accessor.min = Vec3.toArray([], mesh.min || mesh.detail.min);
+                accessor.max = Vec3.toArray([], mesh.max || mesh.detail.max);
             }
 
             gltf.accessors.push(accessor)

@@ -10,5 +10,6 @@ export interface SyncSceneData {
     projectPath: string;
     assetBasePath: string;
     forceSyncAsset: string;
+    forceSyncAssetTypes: string[];
     assets: (SyncAssetData | string)[];
 }

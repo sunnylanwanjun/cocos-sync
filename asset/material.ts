@@ -108,7 +108,8 @@ export interface SyncPassStateData {
     cullMode: gfx.CullMode;
     blendSrc: number;
     blendDst: number;
-    zWrite: number;
+    depthTest: boolean;
+    depthWrite: boolean;
 }
 
 export interface SyncMaterialData extends SyncAssetData {
@@ -248,25 +249,28 @@ export class SyncMaterial extends SyncAsset {
         }
         (mtl as any)._techIdx = techIdx;
 
-        // pipeline state
-        renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
-            rasterizerState: {
-                cullMode: data.passState.cullMode,
-            },
-            // blendState: {
-            //     targets: [
-            //         {
-            //             blendSrc: data.passState.blendSrc,
-            //             blendDst: data.passState.blendDst,
-            //             blendSrcAlpha: data.passState.blendSrc,
-            //             blendDstAlpha: data.passState.blendDst,
-            //         }
-            //     ]
-            // },
-            // depthStencilState: {
-            //     depthWrite: !data.passState.zWrite,
-            // }
-        });
+        if (data.passState) {
+            // pipeline state
+            renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
+                rasterizerState: {
+                    cullMode: data.passState.cullMode,
+                },
+                // blendState: {
+                //     targets: [
+                //         {
+                //             blendSrc: data.passState.blendSrc,
+                //             blendDst: data.passState.blendDst,
+                //             blendSrcAlpha: data.passState.blendSrc,
+                //             blendDstAlpha: data.passState.blendDst,
+                //         }
+                //     ]
+                // },
+                // depthStencilState: {
+                //     depthWrite: !data.passState.zWrite,
+                // }
+            });
+        }
+
 
         // defines
         (mtl as any)._defines.forEach((d: any) => {

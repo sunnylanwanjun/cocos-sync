@@ -46,10 +46,12 @@ if (EDITOR) {
         if (msg instanceof Buffer) {
             let str = '';
             let u16 = new Uint16Array(msg.buffer);
-            let starteIndex = 4 + 2; // 64 bytes header + 32 bytes for message length
-            for (let i = starteIndex; i < u16.length; i++) {
+            // let startIndex = 4 + 2; // 64 bytes header + 32 bytes for message length
+            let startIndex = 0;
+            for (let i = startIndex; i < u16.length; i++) {
                 str += String.fromCharCode(u16[i]);
             }
+            str = str.substr(str.indexOf('{'));
             msg = str;
         }
 
@@ -65,13 +67,13 @@ if (EDITOR) {
 
     function sendWsMessage (msg: object) {
         let str = JSON.stringify(msg);
-        let starteIndex = 2; // 32 bytes for message length
-        let u16 = new Uint16Array(str.length + starteIndex);
+        let startIndex = 2; // 32 bytes for message length
+        let u16 = new Uint16Array(str.length + startIndex);
         let u32 = new Uint32Array(u16.buffer, 0, 1);
         u32[0] = str.length * 2;
 
         for (let i = 0; i < str.length; i++) {
-            u16[i + starteIndex] = str.charCodeAt(i);
+            u16[i + startIndex] = str.charCodeAt(i);
         }
 
         _wsSocket.send(u16);

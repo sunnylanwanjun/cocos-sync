@@ -20,6 +20,7 @@ interface SyncTextureMipmapDetail {
     width: number;
     height: number;
     datas: number[];
+    dataPath: string;
 }
 
 interface SyncTextureDataDetail {
@@ -68,16 +69,6 @@ export class SyncTexture extends SyncAsset {
             await Promise.all(detail.mipmaps.map(async (mipmapData, index) => {
                 mipmapData = deserializeData<SyncTextureMipmapDetail>(mipmapData);
 
-                const channels = 4;
-                const rgbaPixel = 0x00000000;
-                const opts = { raw: { width: mipmapData.width, height: mipmapData.height, channels } };
-
-                let buffer = Buffer.alloc(mipmapData.width * mipmapData.height * channels, rgbaPixel);
-                let datas = mipmapData.datas;
-                for (let i = 0; i < datas.length; i++) {
-                    buffer[i] = datas[i];
-                }
-
                 let subfix = `/mipmap_${index}.png`;
                 let dstPath = data.dstPath;
                 let dstUrl = data.dstUrl;
@@ -88,15 +79,30 @@ export class SyncTexture extends SyncAsset {
 
                 fse.ensureDirSync(path.dirname(dstPath));
 
-                await new Promise((resolve, reject) => {
-                    Sharp(buffer, opts)
-                        .toFile(dstPath, (err: any) => {
-                            if (err) {
-                                return reject(err);
-                            }
-                            resolve(null);
-                        })
-                })
+                if (mipmapData.dataPath) {
+                    fse.copyFileSync(mipmapData.dataPath, dstPath);
+                }
+                else {
+                    const channels = 4;
+                    const rgbaPixel = 0x00000000;
+                    const opts = { raw: { width: mipmapData.width, height: mipmapData.height, channels } };
+
+                    let buffer = Buffer.alloc(mipmapData.width * mipmapData.height * channels, rgbaPixel);
+                    let datas = mipmapData.datas;
+                    for (let i = 0; i < datas.length; i++) {
+                        buffer[i] = datas[i];
+                    }
+
+                    await new Promise((resolve, reject) => {
+                        Sharp(buffer, opts)
+                            .toFile(dstPath, (err: any) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve(null);
+                            })
+                    })
+                }
 
                 await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
 

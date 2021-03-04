@@ -6,6 +6,8 @@ export interface SyncSceneData {
     componentCount: number;
     children: (SyncNodeData | string)[];
 
+    editorView: SyncNodeData;
+
     exportBasePath: string;
     projectPath: string;
     assetBasePath: string;

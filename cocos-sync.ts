@@ -11,6 +11,7 @@ import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-rendere
 import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
 import Event from './utils/event';
+import { cce } from '../advanced-pipeline/utils/editor';
 
 let _tempQuat = new Quat();
 
@@ -167,6 +168,21 @@ if (EDITOR) {
     }
 
     async function syncSceneData (data: SyncSceneData) {
+        if (data.editorView) {
+            cce.Camera._camera.node.position = data.editorView.position;
+            // cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
+            // cce.Camera._camera.node.rotation = Quat.rotateY(new Quat, cce.Camera._camera.node.rotation, -Math.PI / 2);
+
+            var q = new Quat();
+            Quat.rotateAround(q, q, Vec3.UP, -Math.PI / 2);
+            Quat.rotateAround(q, q, Vec3.FORWARD, -data.editorView.eulerAngles.x / 180 * Math.PI);
+            Quat.rotateAround(q, q, Vec3.UP, -data.editorView.eulerAngles.y / 180 * Math.PI);
+
+            cce.Camera._camera.node.rotation = q;
+
+            cce.Engine.repaintInEditMode()
+        }
+
         collectSceneData(data);
 
         await syncAssets();

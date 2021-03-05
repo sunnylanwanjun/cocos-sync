@@ -10,16 +10,14 @@ import { register, SyncAsset, SyncAssetData } from './asset';
 
 export interface SyncAnimationCurve {
     name: string;
-    times: number[];
-    keyframes: number[];
-}
-
-export interface SyncAnimationNode {
-    curves: (SyncAnimationCurve | string)[]
+    values: number[];
+    path: string;
+    key: number;
 }
 
 export interface SyncAnimationClipDetail {
-    nodes: (SyncAnimationNode | string)[]
+    curves: SyncAnimationCurve[];
+    keys: (number[])[];
 }
 
 export interface SyncAnimationClipData extends SyncAssetData {
@@ -27,10 +25,10 @@ export interface SyncAnimationClipData extends SyncAssetData {
     isHuman: boolean;
     sample: number;
     duration: number;
-
+    animName: string;
+    folderName: string;
     detail: SyncAnimationClipDetail;
 }
-
 
 @register
 export class SyncAnimationClip extends SyncAsset {
@@ -40,55 +38,72 @@ export class SyncAnimationClip extends SyncAsset {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
-        let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
-        data.dstPath = path.join(path.dirname(data.dstPath), basenameNoExt + '.anim');
+        let extName = path.extname(data.dstPath)
+        let basenameNoExt = path.basename(data.dstPath).replace(extName, '');
+        if (extName != ".anim") {
+            basenameNoExt += "/" + data.animName;
+        }
+
+        let subFolderName = "";
+        if (data.folderName != "") {
+            subFolderName = data.folderName + "/";
+        }
+
+        data.dstPath = path.join(path.dirname(data.dstPath), subFolderName + basenameNoExt + '.anim');
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
 
     static async sync (data: SyncAnimationClipData) {
         let detail = data.detail = await CocosSync.getDetailData(data) as SyncAnimationClipDetail;
 
-        if (data.isHuman) {
-            var clip = new AnimationClip();
-            clip.sample = data.sample;
-            clip.duration = data.duration;
+        var clip = new AnimationClip();
+        clip.sample = data.sample;
+        clip.duration = data.duration;
+        clip.wrapMode = AnimationClip.WrapMode.Loop;
 
-            let curves: AnimationClip.ICurve[] = clip.curves;
+        let curves: AnimationClip.ICurve[] = clip.curves;
 
-            let nodeData = deserializeData(detail.nodes[0]);
-            nodeData.curves.forEach(curveData => {
-                let curve = deserializeData(curveData);
+        let curveList = deserializeData(detail.curves);
+        clip.keys = deserializeData(detail.keys);
 
-                let values = [];
-                let keyframes = curve.keyframes;
-                if (curve.name.endsWith('.translation') || curve.name.endsWith('.scale')) {
-                    for (let i = 0; i < keyframes.length; i += 3) {
-                        values.push(new Vec3(keyframes[i], keyframes[i + 1], keyframes[i + 2]));
-                    }
+        curveList.forEach(curveData => {
+            let curve = deserializeData(curveData);
+
+            let valuesData = curve.values;
+            let values = [];
+            if (curve.name == 'position' || curve.name == 'scale') {
+                for (let i = 0; i < valuesData.length; i += 3) {
+                    values.push(new Vec3(valuesData[i], valuesData[i + 1], valuesData[i + 2]));
                 }
-                else if (curve.name.endsWith('rotation')) {
-                    for (let i = 0; i < keyframes.length; i += 4) {
-                        values.push(new Quat(keyframes[i], keyframes[i + 1], keyframes[i + 2], keyframes[i + 3]));
-                    }
+            }
+            else if (curve.name == 'rotation') {
+                for (let i = 0; i < valuesData.length; i += 4) {
+                    values.push(new Quat(valuesData[i], valuesData[i + 1], valuesData[i + 2], valuesData[i + 3]));
                 }
+            }
 
-                if (!clip.keys.length) {
-                    clip.keys.push(curve.times);
-                }
+            let modifiers = null;
+            if (curve.path != "") {
+                modifiers = [
+                    new animation.HierarchyPath(curve.path),
+                    curve.name,
+                ];
+            } else {
+                modifiers = [
+                    curve.name
+                ];
+            }
 
-                curves.push({
-                    modifiers: [
-                        new animation.ComponentPath('sync.Avatar'),
-                        curve.name,
-                    ],
-                    data: {
-                        keys: 0,
-                        values: values
-                    },
-                })
+            curves.push({
+                modifiers: modifiers,
+                data: {
+                    keys: curve.key,
+                    values: values
+                },
             })
+        });
 
-            await this.save(data, clip);
-        }
+        await this.save(data, clip);
+        
     }
 }

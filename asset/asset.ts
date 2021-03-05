@@ -9,6 +9,7 @@ export interface SyncAssetData {
     name: string;
     uuid: string;
     path: string;
+    absPath: string;
 
     // runtime
     asset: Asset | null;
@@ -34,17 +35,18 @@ if (EDITOR) {
 export class SyncAsset {
     static clsName = 'cc.Asset';
 
-    static calcPath(data: SyncAssetData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
+
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async sync(data: SyncAssetData, assetBasePath: string) {
+    static async sync (data: SyncAssetData, assetBasePath: string) {
         data;
     }
 
-    static async needSync(data: SyncAssetData) {
+    static async needSync (data: SyncAssetData) {
         if (data.virtualAsset) {
             return true;
         }
@@ -67,11 +69,11 @@ export class SyncAsset {
         return true;
     }
 
-    static async load(data: SyncAssetData) {
+    static async load (data: SyncAssetData) {
         data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl);
     }
 
-    static async save(data: SyncAssetData, asset: Asset | string) {
+    static async save (data: SyncAssetData, asset: Asset | string) {
         if (asset instanceof Asset) {
             asset = cce.Utils.serialize(asset);
         }
@@ -90,6 +92,6 @@ export class SyncAsset {
 }
 
 export const classes: Map<string, typeof SyncAsset> = new Map();
-export function register(cls: typeof SyncAsset) {
+export function register (cls: typeof SyncAsset) {
     classes.set(cls.clsName, cls);
 }

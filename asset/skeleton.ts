@@ -19,8 +19,8 @@ export interface SyncSkeletonData extends SyncAssetData {
 export class SyncSkeleton extends SyncAsset {
     static clsName = 'cc.Skeleton';
 
-    static calcPath(data: SyncSkeletonData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+    static calcPath (data: SyncSkeletonData, sceneData: SyncSceneData) {
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
         let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
@@ -28,7 +28,7 @@ export class SyncSkeleton extends SyncAsset {
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
 
-    static async sync(data: SyncSkeletonData) {
+    static async sync (data: SyncSkeletonData) {
         let skeleton = new Skeleton;
 
         data.bindposes.forEach(mat => {

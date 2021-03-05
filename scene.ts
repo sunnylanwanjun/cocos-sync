@@ -1,3 +1,4 @@
+import { SyncAssetData } from './asset/asset';
 import { SyncNodeData } from "./node";
 
 export interface SyncSceneData {
@@ -5,9 +6,12 @@ export interface SyncSceneData {
     componentCount: number;
     children: (SyncNodeData | string)[];
 
+    editorView: SyncNodeData;
+
     exportBasePath: string;
     projectPath: string;
     assetBasePath: string;
     forceSyncAsset: string;
-    assets: string[];
+    forceSyncAssetTypes: string[];
+    assets: (SyncAssetData | string)[];
 }

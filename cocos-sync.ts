@@ -1,16 +1,17 @@
-import { director, error, find, IVec3Like, log, Mat4, Material, Mesh, MeshRenderer, Node, Quat, Vec3, warn } from "cc";
+import { director, error, find, IVec3Like, js, log, Mat4, Material, Mesh, MeshRenderer, Node, Quat, Vec3, warn } from "cc";
 import { SyncAssetData } from "./asset/asset";
 
 import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { EDITOR, fse, io, path } from "./utils/editor";
+import { EDITOR, fse, io, path, ws } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
 import Event from './utils/event';
+import { cce } from '../advanced-pipeline/utils/editor';
 
 let _tempQuat = new Quat();
 
@@ -25,36 +26,102 @@ export let CocosSync = {
 }
 
 if (EDITOR) {
-    let app = (window as any).__cocos_sync_io__;
-    let _socket: any;
-    if (!app) {
-        app = (window as any).__cocos_sync_io__ = io('8877')
-        app.on('connection', (socket: any) => {
-            log('CocosSync Connected!');
+    let _ioApp = (window as any).__cocos_sync_io__;
+    let _ioSocket: any;
+    if (!_ioApp) {
+        _ioApp = (window as any).__cocos_sync_io__ = io('8877')
+        _ioApp.on('connection', (socket: any) => {
+            log('CocosSync SocketIO Connected!');
 
             socket.on('disconnect', () => {
-                log('CocosSync Disconnected!');
+                log('CocosSync SocketIO Disconnected!');
             });
 
-            socket.on('sync-datas', syncDataString);
+            socket.on('sync-datas-with-file', syncDataFile);
 
-            _socket = socket;
+            _ioSocket = socket;
         })
     }
 
+    function getWsMessage (msg: any) {
+        if (msg instanceof Buffer) {
+            let str = '';
+            let u16 = new Uint16Array(msg.buffer);
+            // let startIndex = 4 + 2; // 64 bytes header + 32 bytes for message length
+            let startIndex = 0;
+            for (let i = startIndex; i < u16.length; i++) {
+                str += String.fromCharCode(u16[i]);
+            }
+            str = str.substr(str.indexOf('{'));
+            msg = str;
+        }
+
+        try {
+            msg = JSON.parse(msg);
+        }
+        catch (err) {
+            console.error(err);
+            return;
+        }
+        return msg;
+    }
+
+    function sendWsMessage (msg: object) {
+        let str = JSON.stringify(msg);
+        let startIndex = 2; // 32 bytes for message length
+        let u16 = new Uint16Array(str.length + startIndex);
+        let u32 = new Uint32Array(u16.buffer, 0, 1);
+        u32[0] = str.length * 2;
+
+        for (let i = 0; i < str.length; i++) {
+            u16[i + startIndex] = str.charCodeAt(i);
+        }
+
+        _wsSocket.send(u16);
+    }
+
+    let _wsApp = (window as any).__cocos_sync_ws__;
+    let _wsSocket: any;
+    if (!_wsApp) {
+        _wsApp = (window as any).__cocos_sync_ws__ = new ws.Server({
+            port: 8878
+        })
+        _wsApp.on('connection', function connection (ws: any) {
+            log('CocosSync WebSocket Connected!');
+
+            ws.on('close', function close () {
+                console.log('CocosSync WebSocket disconnected');
+            });
+            // ws.on('sync-datas', syncDataString);
+
+            ws.on('message', function (msg: any) {
+                msg = getWsMessage(msg);
+
+                if (msg.msg === 'sync-datas') {
+                    syncSceneData(msg.data);
+                }
+                // console.log('CocosSync OnMessage : ' + data);
+            })
+
+            _wsSocket = ws;
+        });
+    }
+
     CocosSync.getDetailData = async function getDetailData (asset: SyncAssetData): Promise<object | null> {
-        if (!_socket) {
+        if (!_ioSocket && !_wsSocket) {
             return null;
         }
         return new Promise((resolve, reject) => {
-            _socket.emit('get-asset-detail', asset.uuid);
-            _socket.once('get-asset-detail', (uuid: string, dataPath: string) => {
+            function getAssetDetil (uuid: string, dataPath: string) {
                 if (uuid !== asset.uuid) {
                     reject(new Error('get-asset-detail failed: uuid not match.'));
                 }
                 let data: any;
                 try {
-                    data = fse.readJSONSync(path.join(_sceneData?.projectPath, dataPath));
+                    if (!path.isAbsolute(dataPath)) {
+                        dataPath = path.join(_sceneData?.projectPath, dataPath)
+                    }
+                    data = fse.readJSONSync(dataPath);
                 }
                 catch (err) {
                     reject(err);
@@ -62,11 +129,32 @@ if (EDITOR) {
                 }
 
                 resolve(data);
-            })
+            }
+
+            if (_ioSocket) {
+                _ioSocket.emit('get-asset-detail', asset.uuid);
+                _ioSocket.once('get-asset-detail', getAssetDetil);
+            }
+            else if (_wsSocket) {
+                function callback (msg: any) {
+                    msg = getWsMessage(msg);
+
+                    if (msg.msg === 'get-asset-detail') {
+                        getAssetDetil(msg.data.uuid, msg.data.path);
+                        _wsSocket.off('message', callback);
+                    }
+                }
+
+                sendWsMessage({
+                    msg: 'get-asset-detail',
+                    uuid: asset.uuid
+                });
+                _wsSocket.on('message', callback);
+            }
         })
     }
 
-    async function syncDataString (dataPath: string) {
+    async function syncDataFile (dataPath: string) {
         let data: SyncSceneData;
         try {
             data = fse.readJSONSync(dataPath);
@@ -76,6 +164,30 @@ if (EDITOR) {
             return;
         }
 
+        await syncSceneData(data);
+    }
+
+    async function syncSceneData (data: SyncSceneData) {
+        if (data.editorView) {
+            cce.Camera._camera.node.position = data.editorView.position;
+            // cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
+            // cce.Camera._camera.node.rotation = Quat.rotateY(new Quat, cce.Camera._camera.node.rotation, -Math.PI / 2);
+
+            // var q = new Quat();
+            // Quat.rotateAround(q, q, Vec3.UP, -Math.PI / 2);
+            // Quat.rotateAround(q, q, Vec3.FORWARD, -data.editorView.eulerAngles.x / 180 * Math.PI);
+            // Quat.rotateAround(q, q, Vec3.UP, -data.editorView.eulerAngles.y / 180 * Math.PI);
+
+            if (data.editorView.rotation) {
+                cce.Camera._camera.node.rotation = data.editorView.rotation;
+            }
+            else if (data.editorView.eulerAngles) {
+                cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
+            }
+
+            cce.Engine.repaintInEditMode()
+        }
+
         collectSceneData(data);
 
         await syncAssets();
@@ -83,10 +195,10 @@ if (EDITOR) {
         syncDatas();
     }
 
-    function getNode (node: string | SyncNodeData): SyncNodeData | null {
+    function getData<T> (node: string | T): T | null {
         if (typeof node === 'string') {
             try {
-                node = JSON.parse(node) as SyncNodeData;
+                node = JSON.parse(node) as T;
             }
             catch (err) {
                 error(err);
@@ -122,7 +234,7 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                let child = getNode(data.children[i]);
+                let child = getData(data.children[i]);
                 if (!child) {
                     continue;
                 }
@@ -167,7 +279,7 @@ if (EDITOR) {
 
         if (data.children) {
             for (let i = 0, l = data.children.length; i < l; i++) {
-                let child = getNode(data.children[i]);
+                let child = getData(data.children[i]);
                 if (!child) {
                     continue;
                 }
@@ -184,20 +296,14 @@ if (EDITOR) {
 
         let time = Date.now();
         log('Begin Sync assets...');
+        if (!_sceneData) {
+            return;
+        }
 
-        let total = _sceneData!.assets.length;
+        let total = _sceneData.assets.length;
         for (let i = 0; i < total; i++) {
             let syncTime = Date.now();
-
-            let dataStr = _sceneData!.assets[i];
-            let data: SyncAssetData | null = null;
-            try {
-                data = JSON.parse(dataStr);
-            }
-            catch (err) {
-                error(err);
-                continue;
-            }
+            let data = getData(_sceneData.assets[i]);
 
             if (data) {
                 log(`Begin sync asset: ${i} - ${total} - ${data.path}`);
@@ -291,16 +397,11 @@ if (EDITOR) {
         for (let i = 0, l = data.components.length; i < l; i++) {
             _componentCount++;
 
-            let cdata: SyncComponentData | null = null;
-            try {
-                cdata = JSON.parse(data.components[i]);
-            }
-            catch (err) {
-                error(err);
+            let cdata = getData(data.components[i]);
+            if (!cdata) {
                 continue;
             }
-
-            if (cdata!.name !== SyncMeshRenderer.clsName) {
+            if (cdata.name !== js.getClassName(SyncMeshRenderer.comp)) {
                 continue;
             }
 
@@ -343,10 +444,12 @@ if (EDITOR) {
         }
 
         node.parent = parent;
-        node.setPosition(data.position as Vec3);
-        node.setScale(data.scale as Vec3);
-        // node.eulerAngles = data.eulerAngles as Vec3;
-        node.rotation = data.rotation as Quat;
+        // node.setScale(data.scale as Vec3);
+        // // node.eulerAngles = data.eulerAngles as Vec3;
+        // node.rotation = data.rotation as Quat;
+        // node.setPosition(data.position as Vec3);
+
+        node.setRTS(data.rotation as Quat, data.position as Vec3, data.scale as Vec3);
 
         data.node = node;
 
@@ -354,16 +457,12 @@ if (EDITOR) {
 
         if (data.components) {
             for (let i = 0, l = data.components.length; i < l; i++) {
-                let cdata: SyncComponentData | null = null;
-                try {
-                    cdata = JSON.parse(data.components[i]);
-                }
-                catch (err) {
-                    error(err);
+                let cdata = getData(data.components[i]);
+                if (!cdata) {
                     continue;
                 }
 
-                SyncComponents.sync(cdata!, node);
+                SyncComponents.sync(cdata, node);
                 _componentCount++;
             }
         }

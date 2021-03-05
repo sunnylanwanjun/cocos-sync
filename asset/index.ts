@@ -38,6 +38,10 @@ export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
             }
         })
 
+        if (sceneData.forceSyncAssetTypes.includes(data.name)) {
+            forceSyncAsset = true;
+        }
+
         // log(`Time 2: ${Date.now() / 1000}`);
 
         let needSync = await cls.needSync(data) || forceSyncAsset;

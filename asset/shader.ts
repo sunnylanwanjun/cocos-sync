@@ -1,16 +1,25 @@
 import { SyncSceneData } from "../scene";
 import { Editor, path, projectAssetPath } from "../utils/editor";
 import { register, SyncAsset, SyncAssetData } from "./asset";
+import { fse } from '../utils/editor';
+
+export enum ShaderType {
+    Standard,
+    ShaderGraph,
+    Source,
+}
 
 export interface SyncShaderData extends SyncAssetData {
+    shaderType: ShaderType;
+    source: string
 }
 
 @register
 export class SyncShader extends SyncAsset {
     static clsName = 'cc.Shader';
 
-    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
-        data.srcPath = path.join(sceneData.assetBasePath, data.path);
+    static calcPath (data: SyncShaderData, sceneData: SyncSceneData) {
+        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         let extname: string = path.extname(data.path);
         data.path = data.path.replace(extname, '') + '.effect';
@@ -18,9 +27,8 @@ export class SyncShader extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async needSync (data: SyncAssetData) {
-        let extname: string = path.extname(data.srcPath);
-        if (extname.toLowerCase() !== '.shadergraph') {
+    static async needSync (data: SyncShaderData) {
+        if (data.shaderType === ShaderType.Standard) {
             return false;
         }
 
@@ -28,7 +36,12 @@ export class SyncShader extends SyncAsset {
     }
 
     static async sync (data: SyncShaderData) {
-        await Editor.Message.request('shader-graph', 'convert', data.srcPath, data.dstPath);
+        if (data.shaderType === ShaderType.ShaderGraph) {
+            await Editor.Message.request('shader-graph', 'convert', data.srcPath, data.dstPath);
+        }
+        else if (data.shaderType === ShaderType.Source) {
+            await this.save(data, data.source);
+        }
     }
 
     static async load (data: SyncShaderData) {

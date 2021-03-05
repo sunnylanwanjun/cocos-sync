@@ -173,12 +173,17 @@ if (EDITOR) {
             // cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
             // cce.Camera._camera.node.rotation = Quat.rotateY(new Quat, cce.Camera._camera.node.rotation, -Math.PI / 2);
 
-            var q = new Quat();
-            Quat.rotateAround(q, q, Vec3.UP, -Math.PI / 2);
-            Quat.rotateAround(q, q, Vec3.FORWARD, -data.editorView.eulerAngles.x / 180 * Math.PI);
-            Quat.rotateAround(q, q, Vec3.UP, -data.editorView.eulerAngles.y / 180 * Math.PI);
+            // var q = new Quat();
+            // Quat.rotateAround(q, q, Vec3.UP, -Math.PI / 2);
+            // Quat.rotateAround(q, q, Vec3.FORWARD, -data.editorView.eulerAngles.x / 180 * Math.PI);
+            // Quat.rotateAround(q, q, Vec3.UP, -data.editorView.eulerAngles.y / 180 * Math.PI);
 
-            cce.Camera._camera.node.rotation = q;
+            if (data.editorView.rotation) {
+                cce.Camera._camera.node.rotation = data.editorView.rotation;
+            }
+            else if (data.editorView.eulerAngles) {
+                cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
+            }
 
             cce.Engine.repaintInEditMode()
         }

@@ -38,6 +38,7 @@ if (EDITOR) {
             });
 
             socket.on('sync-datas-with-file', syncDataFile);
+            socket.on('sync-datas', syncSceneData);
 
             _ioSocket = socket;
         })

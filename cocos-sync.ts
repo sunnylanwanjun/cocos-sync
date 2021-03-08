@@ -37,7 +37,7 @@ if (EDITOR) {
                 log('CocosSync SocketIO Disconnected!');
             });
 
-            socket.on('sync-datas-with-file', syncDataFile);
+            socket.on('sync-datas', syncDataFile);
 
             _ioSocket = socket;
         })

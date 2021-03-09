@@ -1,0 +1,68 @@
+// Copyright (c) 2017-2020 Xiamen Yaji Software Co., Ltd.
+
+CCEffect %{
+  techniques:
+  - name: opaque
+    passes:
+    - vert: standard-vs:vert
+      frag: standard-fs:frag
+      rasterizerState:
+        cullMode: back
+      properties: &props
+        baseColorTexture:   { value: white }
+        lightmapTexture:    { value: white }
+}%
+
+CCProgram shared-ubos %{
+  uniform sampler2D baseColorTexture;
+  uniform sampler2D lightmapTexture;
+}%
+
+CCProgram standard-vs %{
+  precision highp float;
+  #include <input-standard>
+  #include <cc-global>
+  #include <cc-local-batch>
+  #include <shared-ubos>
+
+  out vec3 v_position;
+  out vec2 v_uv;
+  out vec2 v_uv1;
+
+  in vec2 a_texCoord1;
+
+  vec4 vert () {
+    StandardVertInput In;
+    CCVertInput(In);
+
+    mat4 matWorld, matWorldIT;
+    CCGetWorldMatrixFull(matWorld, matWorldIT);
+
+    vec4 pos = matWorld * In.position;
+
+    v_position = pos.xyz;
+
+    v_uv = a_texCoord;
+    v_uv1 = a_texCoord1;
+
+    return cc_matProj * (cc_matView * matWorld) * In.position;
+  }
+}%
+
+CCProgram standard-fs %{
+  precision highp float;
+  #include <cc-global>
+  #include <shared-ubos>
+
+  in vec3 v_position;
+  in vec2 v_uv;
+  in vec2 v_uv1;
+
+  vec4 frag () {
+    vec4 color = texture(baseColorTexture, v_uv);
+    // #if !USE_BATCHING && !CC_FORWARD_ADD
+        color *= texture(lightmapTexture, vec2(v_uv1.x, 1.-v_uv1.y));
+    // #endif
+    return color;
+  }
+}%

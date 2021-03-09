@@ -34,12 +34,14 @@ export class SyncMeshRenderer extends SyncComponent {
         comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
         comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
 
-        let lightmapSetting = deserializeData(data.lightmapSetting);
+        if (data.lightmapSetting) {
+            let lightmapSetting = deserializeData(data.lightmapSetting);
 
-        if (lightmapSetting) {
-            comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;
-            comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
-            (comp as any)._onUpdateLightingmap();
+            if (lightmapSetting) {
+                comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;
+                comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
+                (comp as any)._onUpdateLightingmap();
+            }
         }
 
         data.materilas.forEach((uuid, index) => {

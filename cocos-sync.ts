@@ -5,13 +5,12 @@ import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { EDITOR, fse, io, path, ws } from "./utils/editor";
+import { cce, EDITOR, fse, io, path, ws } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
 import Event from './utils/event';
-import { cce } from '../advanced-pipeline/utils/editor';
 
 let _tempQuat = new Quat();
 

@@ -116,6 +116,20 @@ export class SyncTexture extends SyncAsset {
                         await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
                     }
                 }
+                else if (data.type === TextureType.Texture && data.mipmapCount === 1) {
+                    let metaPath = dstPath + '.meta';
+                    if (fse.existsSync(metaPath)) {
+                        let meta = fse.readJSONSync(metaPath);
+                        if (meta.subMetas) {
+                            for (let id in meta.subMetas) {
+                                meta.subMetas[id].userData.mipfilter = 'linear';
+                            }
+                        }
+                        fse.writeJSONSync(metaPath, meta);
+
+                        await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
+                    }
+                }
             }));
         }
         else {

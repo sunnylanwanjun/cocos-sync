@@ -20,7 +20,7 @@ export interface SyncMeshRendererData extends SyncComponentData {
     materilas: string[];
     probes: SyncMeshRendererProbe[];
     mesh: string;
-    lightmapSetting: string;
+    lightmapSetting: SyncLightMapSetting | string;
 
     casterShadow: boolean;
     receiveShadow: boolean;
@@ -34,15 +34,7 @@ export class SyncMeshRenderer extends SyncComponent {
         comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
         comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
 
-        let lightmapSetting: SyncLightMapSetting | null = null;
-        if (data.lightmapSetting) {
-            try {
-                lightmapSetting = JSON.parse(data.lightmapSetting);
-            }
-            catch (err) {
-                console.error(err);
-            }
-        }
+        let lightmapSetting = deserializeData(data.lightmapSetting);
 
         if (lightmapSetting) {
             comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;

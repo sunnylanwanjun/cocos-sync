@@ -38,7 +38,7 @@ export async function sync (data: SyncAssetData, sceneData: SyncSceneData) {
             }
         })
 
-        if (sceneData.forceSyncAssetTypes.includes(data.name)) {
+        if (sceneData.forceSyncAssetTypes && sceneData.forceSyncAssetTypes.includes(data.name)) {
             forceSyncAsset = true;
         }
 

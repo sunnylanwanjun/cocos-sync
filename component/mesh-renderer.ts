@@ -5,10 +5,14 @@ import { ReflectionProbe } from '../extend-component/reflection-probe';
 import { MeshRendererProbe, ReflectionProbeInfo } from '../extend-component/mesh-renderer-probe';
 import { CocosSync } from '../cocos-sync';
 import { deserializeData } from '../utils/deserialize';
+import { LightmapSetting } from '../extend-component/lightmap-setting';
 
 interface SyncLightMapSetting {
     lightmapColor: string;
     uv: Vec4;
+
+    scaleVector: Vec4[];
+    addVector: Vec4[];
 }
 
 interface SyncMeshRendererProbe {
@@ -40,6 +44,16 @@ export class SyncMeshRenderer extends SyncComponent {
             comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;
             comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
             (comp as any)._onUpdateLightingmap();
+
+            if (comp.lightmapSettings.texture && lightmapSetting.addVector && lightmapSetting.scaleVector) {
+                let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting)) as LightmapSetting;
+                if (!settingComp) {
+                    settingComp = comp.node.addComponent(js.getClassName(LightmapSetting)) as LightmapSetting
+                }
+
+                settingComp.addVector = lightmapSetting.addVector.map(v => new Vec4(v));
+                settingComp.scaleVector = lightmapSetting.scaleVector.map(v => new Vec4(v));
+            }
         }
 
         data.materilas.forEach((uuid, index) => {

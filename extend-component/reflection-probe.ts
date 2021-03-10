@@ -20,6 +20,5 @@ export class ReflectionProbe extends Component {
     }
 
     start () {
-        console.log(1);
     }
 }

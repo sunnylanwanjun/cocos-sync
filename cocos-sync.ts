@@ -5,7 +5,7 @@ import * as SyncComponents from './component';
 import * as SyncAssets from './asset';
 
 import { SyncComponentData } from "./component/component";
-import { EDITOR, fse, io, path, ws } from "./utils/editor";
+import { Editor, EDITOR, fse, io, path, ws } from "./utils/editor";
 import { GuidProvider } from "./utils/guid-provider";
 import { SyncMeshRenderer, SyncMeshRendererData } from "./component/mesh-renderer";
 import { SyncNodeData } from "./node";
@@ -350,6 +350,10 @@ if (EDITOR) {
                 finishMerge();
 
                 CocosSync.FinishedEvent.invoke();
+
+                setTimeout(() => {
+                    Editor.Message.request('scene', 'soft-reload');
+                }, 1000)
 
                 log(`End sync: ${Date.now() - _startTime} ms`);
 

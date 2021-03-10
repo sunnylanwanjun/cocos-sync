@@ -95,6 +95,9 @@ const Property2Defines = {
 
 enum ShaderType {
     Standard,
+    IPhone_LightMap,
+    IPhone_SolidTexture,
+    IPhone_AlphaBlend_TwoSides,
     ShaderGraph,
 }
 
@@ -144,6 +147,15 @@ export class SyncMaterial extends SyncAsset {
             let url = ''
             if (data.shaderType === ShaderType.Standard) {
                 url = 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl';
+            }
+            else if (data.shaderType === ShaderType.IPhone_LightMap) {
+                url = 'db://assets/lib/cocos-sync/builtin/iPhone/light-map.mtl';
+            }
+            else if (data.shaderType === ShaderType.IPhone_SolidTexture) {
+                url = 'db://assets/lib/cocos-sync/builtin/iPhone/solid-texture.mtl';
+            }
+            else if (data.shaderType === ShaderType.IPhone_AlphaBlend_TwoSides) {
+                url = 'db://assets/lib/cocos-sync/builtin/iPhone/alpha-blend-two-sides.mtl';
             }
             else {
                 url = 'db://internal/default-material.mtl';
@@ -249,27 +261,27 @@ export class SyncMaterial extends SyncAsset {
         }
         (mtl as any)._techIdx = techIdx;
 
-        if (data.passState) {
-            // pipeline state
-            renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
-                rasterizerState: {
-                    cullMode: data.passState.cullMode,
-                },
-                // blendState: {
-                //     targets: [
-                //         {
-                //             blendSrc: data.passState.blendSrc,
-                //             blendDst: data.passState.blendDst,
-                //             blendSrcAlpha: data.passState.blendSrc,
-                //             blendDstAlpha: data.passState.blendDst,
-                //         }
-                //     ]
-                // },
-                // depthStencilState: {
-                //     depthWrite: !data.passState.zWrite,
-                // }
-            });
-        }
+        // if (data.passState) {
+        //     // pipeline state
+        //     renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
+        //         rasterizerState: {
+        //             cullMode: data.passState.cullMode,
+        //         },
+        //         // blendState: {
+        //         //     targets: [
+        //         //         {
+        //         //             blendSrc: data.passState.blendSrc,
+        //         //             blendDst: data.passState.blendDst,
+        //         //             blendSrcAlpha: data.passState.blendSrc,
+        //         //             blendDstAlpha: data.passState.blendDst,
+        //         //         }
+        //         //     ]
+        //         // },
+        //         // depthStencilState: {
+        //         //     depthWrite: !data.passState.zWrite,
+        //         // }
+        //     });
+        // }
 
 
         // defines

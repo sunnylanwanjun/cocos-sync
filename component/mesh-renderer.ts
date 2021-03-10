@@ -38,21 +38,23 @@ export class SyncMeshRenderer extends SyncComponent {
         comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
         comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
 
-        let lightmapSetting = deserializeData(data.lightmapSetting);
+        if (data.lightmapSetting) {
+            let lightmapSetting = deserializeData(data.lightmapSetting);
 
-        if (lightmapSetting) {
-            comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;
-            comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
-            (comp as any)._onUpdateLightingmap();
+            if (lightmapSetting) {
+                comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;
+                comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
+                (comp as any)._onUpdateLightingmap();
 
-            if (comp.lightmapSettings.texture && lightmapSetting.addVector && lightmapSetting.scaleVector) {
-                let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting)) as LightmapSetting;
-                if (!settingComp) {
-                    settingComp = comp.node.addComponent(js.getClassName(LightmapSetting)) as LightmapSetting
+                if (comp.lightmapSettings.texture && lightmapSetting.addVector && lightmapSetting.scaleVector) {
+                    let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting)) as LightmapSetting;
+                    if (!settingComp) {
+                        settingComp = comp.node.addComponent(js.getClassName(LightmapSetting)) as LightmapSetting
+                    }
+
+                    settingComp.addVector = lightmapSetting.addVector.map(v => new Vec4(v));
+                    settingComp.scaleVector = lightmapSetting.scaleVector.map(v => new Vec4(v));
                 }
-
-                settingComp.addVector = lightmapSetting.addVector.map(v => new Vec4(v));
-                settingComp.scaleVector = lightmapSetting.scaleVector.map(v => new Vec4(v));
             }
         }
 

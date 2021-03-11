@@ -2,12 +2,12 @@
   "ver": "4.0.22",
   "importer": "typescript",
   "imported": true,
-  "uuid": "8a77cdf3-491f-4fcd-8a6b-0902971bd495",
+  "uuid": "baf5d665-3cb6-46da-b917-b701bd6174b2",
   "files": [],
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/lib/cocos-sync/cocos-sync.js",
+    "moduleId": "project:///assets/lib/cocos-sync/component/mesh-renderer.js",
     "importerSettings": 7,
     "simulateGlobals": []
   }

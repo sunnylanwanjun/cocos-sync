@@ -2,12 +2,12 @@
   "ver": "4.0.22",
   "importer": "typescript",
   "imported": true,
-  "uuid": "8a77cdf3-491f-4fcd-8a6b-0902971bd495",
+  "uuid": "2c14b25f-1626-4749-ba3b-3cd2f3590f01",
   "files": [],
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/lib/cocos-sync/cocos-sync.js",
+    "moduleId": "project:///assets/lib/cocos-sync/component/sync-merge-statics.js",
     "importerSettings": 7,
     "simulateGlobals": []
   }

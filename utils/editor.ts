@@ -1,5 +1,6 @@
 import { EDITOR as _EDITOR } from 'cc/env';
 import { formatPath } from "./path";
+import { log as cclog, warn as ccwarn } from 'cc';
 
 export const EDITOR = _EDITOR;
 
@@ -14,3 +15,10 @@ export const Sharp = EDITOR && (window as any).require('sharp');
 export const Editor = EDITOR && (window as any).Editor;
 export const projectPath = EDITOR && formatPath(Editor.Project.path);
 export const projectAssetPath = EDITOR && formatPath(path.join(projectPath, 'assets'));
+
+export function log (...args: any[]) {
+    ccwarn(...args);
+}
+export function warn (...args: any[]) {
+    ccwarn(...args);
+}

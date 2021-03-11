@@ -19,11 +19,21 @@ export class LightmapSetting extends Component {
         }
 
         this.updateMaterials('**');
+
     }
 
     updateMaterials (uuid: string) {
         let meshRenderer = this.getComponent(MeshRenderer);
         if (meshRenderer) {
+
+            if (meshRenderer.model) {
+                meshRenderer.model.subModels.forEach((sm, index) => {
+                    let macros = meshRenderer!.model!.getMacroPatches(index);
+                    macros = macros ? macros.concat() : [];
+                    macros.push({ name: 'CC_USE_LIGHTMAP', value: true })
+                    sm.onMacroPatchesStateChanged(macros);
+                })
+            }
 
             let materials = meshRenderer.sharedMaterials;
             for (let i = 0, l = materials.length; i < l; i++) {

@@ -1,6 +1,5 @@
 import { Vec3 } from "cc";
-import { SyncMeshData } from "../asset/mesh";
-import { loadAssetByUrl } from './asset-operation';
+import { SyncMeshData } from "../process/asset/mesh";
 import { base642arraybuffer } from "./editor";
 
 interface AttrDefine {
@@ -70,7 +69,7 @@ const _attributes = {
 };
 
 
-export function toGltfMesh(mesh: SyncMeshData) {
+export function toGltfMesh (mesh: SyncMeshData) {
     let gltf = {
         "asset": {
             "generator": "Khronos glTF Blender I/O v1.2.75",

@@ -2,12 +2,12 @@
   "ver": "4.0.22",
   "importer": "typescript",
   "imported": true,
-  "uuid": "8a77cdf3-491f-4fcd-8a6b-0902971bd495",
+  "uuid": "bd1cd91e-5b36-4555-8be6-bcd8e3a634ef",
   "files": [],
   "subMetas": {},
   "userData": {
     "importAsPlugin": false,
-    "moduleId": "project:///assets/lib/cocos-sync/cocos-sync.js",
+    "moduleId": "project:///assets/lib/cocos-sync/component/terrain.js",
     "importerSettings": 7,
     "simulateGlobals": []
   }

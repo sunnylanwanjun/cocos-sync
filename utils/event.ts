@@ -1,4 +1,4 @@
-export default class Event {
+export default class Event implements IEvent {
     _listeners: any[][] = [];
     _onceListeners: any[][] = [];
 
@@ -32,7 +32,7 @@ export default class Event {
         listeners.push([cb, target]);
     }
 
-    public invoke (a1?, a2?, a3?, a4?, a5?, a6?) {
+    public invoke (a1?: any, a2?: any, a3?: any, a4?: any, a5?: any, a6?: any) {
         var args: any[] = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];

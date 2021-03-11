@@ -1,35 +1,15 @@
-import { animation, AnimationClip, error, IVec3Like, Quat, Vec3 } from 'cc';
+import { animation, AnimationClip, Quat, Vec3 } from 'cc';
+import { SyncAnimationClipData, SyncAnimationClipDetail } from '../../datas/asset/animation-clip';
 import { SyncSceneData } from '../../scene';
 import { deserializeData } from '../../utils/deserialize';
 import { path, projectAssetPath } from '../../utils/editor';
 import { formatPath } from '../../utils/path';
-import { register, SyncAsset, SyncAssetData } from './asset';
-
-export interface SyncAnimationCurve {
-    name: string;
-    values: number[];
-    path: string;
-    key: number;
-}
-
-export interface SyncAnimationClipDetail {
-    curves: SyncAnimationCurve[];
-    keys: (number[])[];
-}
-
-export interface SyncAnimationClipData extends SyncAssetData {
-    clipName: string;
-    isHuman: boolean;
-    sample: number;
-    duration: number;
-    animName: string;
-    folderName: string;
-    detail: SyncAnimationClipDetail;
-}
+import { register } from '../register';
+import { SyncAsset } from './asset';
 
 @register
 export class SyncAnimationClip extends SyncAsset {
-    static clsName = 'SyncAnimationClip';
+    static DATA = SyncAnimationClipData;
 
     static calcPath (data: SyncAnimationClipData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
@@ -50,7 +30,7 @@ export class SyncAnimationClip extends SyncAsset {
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
 
-    static async sync (data: SyncAnimationClipData) {
+    static async import (data: SyncAnimationClipData) {
         let detail = data.detail = await CocosSync.getDetailData(data) as SyncAnimationClipDetail;
 
         var clip = new AnimationClip();
@@ -101,6 +81,5 @@ export class SyncAnimationClip extends SyncAsset {
         });
 
         await this.save(data, clip);
-
     }
 }

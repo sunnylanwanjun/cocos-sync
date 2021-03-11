@@ -1,27 +1,10 @@
 import { Terrain, TerrainInfo, TERRAIN_BLOCK_TILE_COMPLEXITY, Vec4 } from "cc";
-import { cce } from "../utils/editor";
-import { SyncComponentData, SyncComponent, register } from "./component";
+import { SyncTerrainData } from "../../datas/component/terrain";
+import { cce } from "../../utils/editor";
+import { register } from "../register";
+import { SyncComponent } from "./component";
 
 let _tempVec4 = new Vec4();
-
-export interface SyncTerrainLayer {
-    name: string;
-}
-
-export interface SyncTerrainData extends SyncComponentData {
-    heightmapWidth: number;
-    heightmapHeight: number;
-    heightDatas: number[];
-
-    terrainLayers: SyncTerrainLayer[];
-    weightmapWidth: number;
-    weightmapHeight: number;
-    weightDatas: number[];
-
-    terrainWidth: number;
-    terrainHeight: number;
-}
-
 
 @register
 export class SyncTerrain extends SyncComponent {

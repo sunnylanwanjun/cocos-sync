@@ -1,27 +1,10 @@
 import { Asset } from 'cc';
 import { EDITOR } from 'cc/env';
-import { type } from 'os';
+import { SyncAssetData } from '../../datas/asset/asset';
 import { SyncSceneData } from '../../scene';
 import { AssetOpration } from '../../utils/asset-operation';
-import { cce, Editor, fse, path, projectAssetPath, projectPath } from '../../utils/editor';
+import { cce, Editor, error, fse, log, path, projectAssetPath, projectPath } from '../../utils/editor';
 import { SyncBase } from '../sync-base';
-
-export interface SyncAssetData {
-    name: string;
-    uuid: string;
-    path: string;
-    absPath: string;
-
-    // runtime
-    asset: Asset | null;
-
-    srcPath: string;
-    dstPath: string;
-    dstUrl: string;
-
-    shouldCheckSrc: boolean;
-    virtualAsset: boolean;
-}
 
 let mtimeConfigsPath: string;
 let mtimeConfigs: any = {};
@@ -36,15 +19,14 @@ if (EDITOR) {
 export class SyncAsset extends SyncBase {
     static clsName = 'cc.Asset';
 
+    static async import (data: SyncAssetData) {
+    }
+
     static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
-    }
-
-    static async sync (data: SyncAssetData, assetBasePath: string) {
-        data;
     }
 
     static async needSync (data: SyncAssetData) {
@@ -90,9 +72,51 @@ export class SyncAsset extends SyncBase {
             await cce.Ipc.send('save-asset', uuid, asset)
         }
     }
+
+    static async sync (data: SyncAssetData, sceneData: SyncSceneData) {
+        // log(`Time 1: ${Date.now() / 1000}`);
+
+        this.calcPath(data, sceneData);
+
+        let forceSyncAsset = false;
+
+        let regs = sceneData.forceSyncAsset.split(',');
+        regs.forEach(reg => {
+            if (!reg) return;
+            if (new RegExp(reg).test(data.srcPath.toLowerCase())) {
+                forceSyncAsset = true;
+            }
+        })
+
+        if (sceneData.forceSyncAssetTypes && sceneData.forceSyncAssetTypes.includes(data.name)) {
+            forceSyncAsset = true;
+        }
+
+        // log(`Time 2: ${Date.now() / 1000}`);
+
+        let needSync = await this.needSync(data) || forceSyncAsset;
+        if (needSync) {
+            try {
+                log(`Syncing asset : ${data.path}`);
+                await this.import(data);
+            }
+            catch (err) {
+                error(err);
+            }
+        }
+
+        // log(`Time 3: ${Date.now() / 1000}`);
+
+        try {
+            await this.load(data);
+        }
+        catch (err) {
+            error(err);
+        }
+
+        return data;
+
+        // log(`Time 4: ${Date.now() / 1000}`);
+    }
 }
 
-// export const classes: Map<string, typeof SyncAsset> = new Map();
-// export function register (cls: typeof SyncAsset) {
-//     classes.set(cls.clsName, cls);
-// }

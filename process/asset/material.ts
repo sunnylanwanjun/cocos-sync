@@ -1,41 +1,12 @@
-import { Asset, Color, error, gfx, Material, renderer, Texture2D, Vec4 } from "cc";
-import { type } from 'os';
-import { deserialize } from 'v8';
-import { SyncSceneData } from "../scene";
-import { AssetOpration } from "../utils/asset-operation";
-import { cce, Editor, fse, path, projectAssetPath } from "../utils/editor";
-import { register, SyncAsset, SyncAssetData } from "./asset";
+import { Color, error, Material, Texture2D, Vec4 } from "cc";
+import { SyncMaterialData, SyncMaterialPropertyType } from "../../datas/asset/material";
+import { register } from "../register";
+import { SyncSceneData } from "../../scene";
+import { AssetOpration } from "../../utils/asset-operation";
+import { Editor, fse, path, projectAssetPath } from "../../utils/editor";
+import { SyncAsset } from "./asset";
 
-import * as SyncAssets from './index';
-import { SyncShaderData } from './shader';
-
-enum ShaderPropertyType {
-    //
-    // Summary:
-    //     The property holds a Vector4 value representing a color.
-    Color = 0,
-    //
-    // Summary:
-    //     The property holds a Vector4 value.
-    Vector = 1,
-    //
-    // Summary:
-    //     The property holds a floating number value.
-    Float = 2,
-    //
-    // Summary:
-    //     The property holds a floating number value in a certain range.
-    Range = 3,
-    //
-    // Summary:
-    //     The property holds a Texture object.
-    Texture = 4
-}
-
-interface MaterialConfig {
-    url: string
-    properties: any
-}
+import { ShaderType, SyncShaderData } from "../../datas/asset/shader";
 
 const Property2Defines = {
     albedoMap: ['USE_ALBEDO_MAP'],
@@ -43,93 +14,13 @@ const Property2Defines = {
     normalMap: ['USE_NORMAL_MAP'],
     occlusionMap: ['USE_OCCLUSION_MAP'],
     emissiveMap: ['USE_EMISSIVE_MAP'],
-
-    // // unity standard shader
-    // "0000000000000000f000000000000000/Standard": {
-    //     url: 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl',
-    //     properties: {
-    //         '_Color': { name: 'mainColor' },
-    //         '_MainTex': { name: 'albedoMap', defines: ['USE_ALBEDO_MAP'] },
-    //         '_Cutoff': { name: 'alphaThreshold'/*, defines: ['USE_ALPHA_TEST']*/ },
-    //         '_Glossiness': { name: 'smoothness', defines: [] },
-    //         '_Metallic': { name: 'metallic', defines: [] },
-    //         '_MetallicGlossMap': { name: 'metallicGlossMap', defines: ['USE_METAL_SMOOTH_MAP'] },
-    //         '_BumpScale': { name: 'normalStrenth' },
-    //         '_BumpMap': { name: 'normalMap', defines: ['USE_NORMAL_MAP'] },
-    //         '_OcclusionStrength': { name: 'occlusion', defines: [] },
-    //         '_OcclusionMap': { name: 'occlusionMap', defines: ['USE_OCCLUSION_MAP'] },
-    //         '_EmissionColor': { name: 'emissive', defines: [] },
-    //         '_EmissionMap': { name: 'emissiveMap', defines: ['USE_EMISSIVE_MAP'] },
-
-    //         // '_SpecularHighlights': '',
-    //         // '_GlossyReflections': '',
-    //         // '_GlossMapScale': '',
-    //         // '_SmoothnessTextureChannel': '',
-    //         // '_Parallax': '',
-    //         // '_ParallaxMap': '',
-    //         // '_DetailMask': '',
-    //         // '_DetailAlbedoMap': '',
-    //         // '_DetailNormalMapScale': '',
-    //         // '_DetailNormalMap': '',
-    //         // '_UVSec': ''
-    //     }
-    // },
-    // "933532a4fcc9baf4fa0491de14d08ed7/Universal Render Pipeline/Lit": {
-    //     url: 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl',
-    //     properties: {
-    //         _BaseColor: { name: 'mainColor' },
-    //         _BaseMap: { name: 'albedoMap', defines: ['USE_ALBEDO_MAP'] },
-    //         _Cutoff: { name: 'alphaThreshold'/*, defines: ['USE_ALPHA_TEST']*/ },
-    //         _Smoothness: { name: 'smoothness', defines: [] },
-    //         _Metallic: { name: 'metallic', defines: [] },
-    //         _MetallicGlossMap: { name: 'metallicGlossMap', defines: ['USE_METAL_SMOOTH_MAP'] },
-    //         _BumpScale: { name: 'normalStrenth' },
-    //         _BumpMap: { name: 'normalMap', defines: ['USE_NORMAL_MAP'] },
-    //         _OcclusionStrength: { name: 'occlusion', defines: [] },
-    //         _OcclusionMap: { name: 'occlusionMap', defines: ['USE_OCCLUSION_MAP'] },
-    //         _EmissionColor: { name: 'emissive', defines: [] },
-    //         _EmissionMap: { name: 'emissiveMap', defines: ['USE_EMISSIVE_MAP'] },
-    //     }
-    // }
 } as Record<string, string[]>
-
-enum ShaderType {
-    Standard,
-    IPhone_LightMap,
-    IPhone_SolidTexture,
-    IPhone_AlphaBlend_TwoSides,
-    ShaderGraph,
-}
-
-export interface SyncMaterialPropertyData {
-    name: string;
-    value: string;
-    type: ShaderPropertyType;
-}
-
-export interface SyncPassStateData {
-    cullMode: gfx.CullMode;
-    blendSrc: number;
-    blendDst: number;
-    depthTest: boolean;
-    depthWrite: boolean;
-}
-
-export interface SyncMaterialData extends SyncAssetData {
-    shaderType: ShaderType;
-    shaderUuid: string;
-    properties: SyncMaterialPropertyData[];
-    passState: SyncPassStateData;
-    hasLightMap: boolean;
-    technique: string;
-    defines: string[];
-}
 
 @register
 export class SyncMaterial extends SyncAsset {
-    static clsName = 'cc.Material';
+    static DATA = SyncMaterialData;
 
-    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+    static calcPath (data: SyncMaterialData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
@@ -137,7 +28,7 @@ export class SyncMaterial extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async sync (data: SyncMaterialData, assetBasePath: string) {
+    static async import (data: SyncMaterialData) {
         let mtlJson: any;
 
         if (fse.existsSync(data.dstPath)) {
@@ -165,7 +56,7 @@ export class SyncMaterial extends SyncAsset {
             mtlJson = fse.readJsonSync(mtlPath);
         }
 
-        let shaderData = SyncAssets.get(data.shaderUuid) as any as SyncShaderData;
+        let shaderData = CocosSync.get(data.shaderUuid) as any as SyncShaderData;
         let hasShader = shaderData && fse.existsSync(shaderData.dstPath);
         if (hasShader) {
             const shaderUuid = await Editor.Message.request('asset-db', 'query-uuid', shaderData.dstUrl);
@@ -204,13 +95,13 @@ export class SyncMaterial extends SyncAsset {
             let name = p.name;
 
             let value;
-            if (p.type === ShaderPropertyType.Float) {
+            if (p.type === SyncMaterialPropertyType.Float) {
                 value = Number.parseFloat(p.value);
             }
-            else if (p.type === ShaderPropertyType.Texture) {
-                value = SyncAssets.get(p.value) as Texture2D || undefined;
+            else if (p.type === SyncMaterialPropertyType.Texture) {
+                value = CocosSync.get(p.value) as Texture2D || undefined;
             }
-            else if (p.type === ShaderPropertyType.Range) {
+            else if (p.type === SyncMaterialPropertyType.Range) {
                 value = Number.parseFloat(p.value);
             }
             else {
@@ -222,7 +113,7 @@ export class SyncMaterial extends SyncAsset {
                     return;
                 }
 
-                if (p.type === ShaderPropertyType.Color) {
+                if (p.type === SyncMaterialPropertyType.Color) {
                     let maxVal = Math.max(value.r, value.g, value.b, value.a);
                     let color;
                     if (maxVal > 1) {

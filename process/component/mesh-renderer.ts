@@ -1,38 +1,15 @@
 import { find, js, JsonAsset, Material, Mesh, MeshRenderer, Texture2D, Vec4 } from "cc";
-import { SyncComponentData, SyncComponent, register } from "./component";
-import * as SyncAssets from '../asset';
-import { ReflectionProbe } from '../extend-component/reflection-probe';
-import { MeshRendererProbe, ReflectionProbeInfo } from '../extend-component/mesh-renderer-probe';
-import { CocosSync } from '../cocos-sync';
-import { deserializeData } from '../utils/deserialize';
-import { LightmapSetting } from '../extend-component/lightmap-setting';
-
-interface SyncLightMapSetting {
-    lightmapColor: string;
-    uv: Vec4;
-
-    scaleVector: Vec4[];
-    addVector: Vec4[];
-}
-
-interface SyncMeshRendererProbe {
-    probePath: string;
-    weight: number;
-}
-
-export interface SyncMeshRendererData extends SyncComponentData {
-    materilas: string[];
-    probes: SyncMeshRendererProbe[];
-    mesh: string;
-    lightmapSetting: SyncLightMapSetting | string;
-
-    casterShadow: boolean;
-    receiveShadow: boolean;
-}
+import { SyncComponent } from "./component";
+import { ReflectionProbe } from '../../extend-component/reflection-probe';
+import { MeshRendererProbe, ReflectionProbeInfo } from '../../extend-component/mesh-renderer-probe';
+import { deserializeData } from '../../utils/deserialize';
+import { LightmapSetting } from '../../extend-component/lightmap-setting';
+import { register } from "../register";
+import { SyncMeshRendererData } from "../../datas/component/mesh-renderer";
 
 @register
 export class SyncMeshRenderer extends SyncComponent {
-    static comp = MeshRenderer;
+    static DATA = SyncMeshRendererData;
 
     static import (comp: MeshRenderer, data: SyncMeshRendererData) {
         comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
@@ -43,7 +20,7 @@ export class SyncMeshRenderer extends SyncComponent {
             let lightmapSetting = deserializeData(data.lightmapSetting);
 
             if (lightmapSetting) {
-                comp.lightmapSettings.texture = SyncAssets.get(lightmapSetting.lightmapColor) as Texture2D;
+                comp.lightmapSettings.texture = CocosSync.get(lightmapSetting.lightmapColor) as Texture2D;
                 comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv);
                 (comp as any)._onUpdateLightingmap();
 
@@ -69,13 +46,13 @@ export class SyncMeshRenderer extends SyncComponent {
         }
 
         data.materilas.forEach((uuid, index) => {
-            let m = SyncAssets.get(uuid);
+            let m = CocosSync.get(uuid);
             if (m) {
                 comp.setMaterial(m as Material, index);
             }
         })
 
-        let m = SyncAssets.get(data.mesh) as Mesh;
+        let m = CocosSync.get(data.mesh) as Mesh;
         comp.mesh = m;
 
         if (comp.model && comp.model.subModels) {
@@ -96,7 +73,7 @@ export class SyncMeshRenderer extends SyncComponent {
             data.probes.forEach(probe => {
                 probe = deserializeData(probe);
 
-                let node = find(CocosSync.Export_Base + '/' + probe.probePath);
+                let node = find(CocosSync.Export_Base + '/' + probe.probePath); 
                 if (node) {
                     let reflectionProbe = node.getComponent(js.getClassName(ReflectionProbe)) as ReflectionProbe;
                     if (!reflectionProbe) {

@@ -1,5 +1,4 @@
 
-export class SyncComponentData implements ISyncDataBase {
-    uuid = '';
-    name = '';
+export abstract class SyncComponentData implements ISyncDataBase {
+    abstract __type__: string;
 }

@@ -11,6 +11,8 @@ import { SyncNodeData } from "./node";
 import { SyncSceneData } from "./scene";
 import Event from './utils/event';
 import { deserializeData } from './utils/deserialize';
+import { SyncDataBase } from "./datas/data-base";
+import { SyncBase } from "./process/sync-base";
 
 if (EDITOR) {
     class CocosSyncClass implements ICocosSync {
@@ -101,9 +103,31 @@ if (EDITOR) {
         _wsSocket = undefined;
 
         // register
-        _registedClasses = new Map() as Map<string, ISyncBase>;
-        register (dataClass: ISyncDataBase, syncClass: ISyncBase) {
-            this._registedClasses.set(dataClass.name, syncClass);
+        _registedClasses = new Map() as Map<string, typeof SyncBase>;
+        _uuidMap = new Map() as Map<string, object>;
+
+        register (dataName: string, syncClass: typeof SyncBase) {
+            this._registedClasses.set(dataName, syncClass);
+        }
+
+        async sync (data: SyncDataBase, ...args: any[]) {
+            const cls = this._registedClasses.get(data.name);
+            if (!cls) {
+                error('Can not find data process for : ' + data.name);
+                return;
+            }
+
+            let res = await cls.sync(data, ...args);
+
+            if (res && data.uuid) {
+                this._uuidMap.set(data.uuid, res);
+            }
+
+            return res;
+        }
+
+        get (uuid: string) {
+            return this._uuidMap.get(uuid);
         }
     }
 

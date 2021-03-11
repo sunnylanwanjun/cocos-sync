@@ -13,12 +13,12 @@ export class SyncMeshRendererProbe {
     weight = 0;
 }
 
-export class SyncMeshRendererData extends SyncComponentData {
-    name = 'cc.MeshRenderer';
+export class SyncMeshRendererData implements SyncComponentData {
+    __type__ = 'cc.MeshRenderer';
 
     materilas: string[] = [];
     probes: SyncMeshRendererProbe[] = [];
-    mesh = 0;
+    mesh = '';
     lightmapSetting: SyncLightMapSetting | string = '';
 
     casterShadow = false;

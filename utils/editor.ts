@@ -1,6 +1,6 @@
 import { EDITOR as _EDITOR } from 'cc/env';
 import { formatPath } from "./path";
-import { log as cclog, warn as ccwarn } from 'cc';
+import { log as cclog, warn as ccwarn, error as ccerror } from 'cc';
 
 export const EDITOR = _EDITOR;
 
@@ -21,4 +21,8 @@ export function log (...args: any[]) {
 }
 export function warn (...args: any[]) {
     ccwarn(...args);
+}
+
+export function error (...args: any[]) {
+    ccerror(...args);
 }

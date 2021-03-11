@@ -1,5 +1,5 @@
-import { SyncAssetData } from 'datas/asset/asset';
-import { BlendFactor, CullMode } from 'datas/gfx';
+import { BlendFactor, CullMode } from '../gfx';
+import { SyncAssetData } from './asset';
 import { ShaderType } from './shader';
 
 
@@ -27,28 +27,28 @@ export enum SyncMaterialPropertyType {
 }
 
 export class SyncMaterialPropertyData {
-    name: string;
-    value: string;
-    type: SyncMaterialPropertyType;
+    name = '';
+    value = '';
+    type = SyncMaterialPropertyType.Color;
 }
 
 
 export class SyncPassStateData {
-    cullMode: CullMode;
-    blendSrc: BlendFactor;
-    blendDst: BlendFactor;
-    depthTest: boolean;
-    depthWrite: boolean;
+    cullMode = CullMode.BACK;
+    blendSrc = BlendFactor.SRC_ALPHA;
+    blendDst = BlendFactor.ONE_MINUS_SRC_ALPHA;
+    depthTest = true;
+    depthWrite = false;
 }
 
 export class SyncMaterialData extends SyncAssetData {
     name = 'cc.Material';
 
     shaderType: ShaderType = ShaderType.Source;
-    shaderUuid: string;
+    shaderUuid = '';
     properties: SyncMaterialPropertyData[] = [];
-    passState: SyncPassStateData;
-    hasLightMap: boolean;
-    technique: string;
+    passState: SyncPassStateData | undefined;
+    hasLightMap = false;
+    technique = '';
     defines: string[] = [];
 }

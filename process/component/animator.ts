@@ -1,21 +1,22 @@
 import { AnimationClip, js, SkeletalAnimation, _decorator } from "cc";
 import { SyncComponent } from "./component";
-import * as SyncAssets from '../asset';
 import { register } from '../register';
+import { SyncAnimatorData } from "../../datas/component/animator";
 
 // export interface SyncAnimatorData extends SyncComponentData {
 //     clips: string[];
 //     avatarMap: string[];
 // }
 
+@register
 export class SyncAnimator extends SyncComponent {
-    static comp = "cc.SkeletalAnimation";
+    static DATA = SyncAnimatorData;
 
     static import (comp: SkeletalAnimation, data: SyncAnimatorData) {
         comp.clips.length = 0;
         comp.useBakedAnimation = false;
         data.clips.forEach(uuid => {
-            let clip = SyncAssets.get(uuid) as AnimationClip;
+            let clip = CocosSync.get(uuid) as AnimationClip;
             if (clip) {
                 comp.clips.push(clip);
             }
@@ -36,4 +37,3 @@ export class SyncAnimator extends SyncComponent {
         */
     }
 }
-register(new SyncAnimatorData, SyncAnimator);

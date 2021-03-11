@@ -1,14 +1,7 @@
 import { Color, DirectionalLight, Light, SphereLight, SpotLight } from 'cc';
-import { register, SyncComponentData, SyncComponent } from './component';
-
-export interface SyncLightData extends SyncComponentData {
-    range: number;
-    size: number;
-    intensity: number;
-    color: number[]
-    temperature: number;
-    useTemperature: boolean;
-}
+import { SyncDirectionLightData, SyncLightData, SyncSphereLightData, SyncSpotLightData } from '../../datas/component/light';
+import { register } from '../register';
+import { SyncComponent } from './component';
 
 export class SyncLight extends SyncComponent {
     static import (comp: Light, data: SyncLightData) {
@@ -18,9 +11,9 @@ export class SyncLight extends SyncComponent {
 
 @register
 export class SyncSphereLight extends SyncLight {
-    static comp = SphereLight;
+    static Data = SyncSphereLightData;
 
-    static import (comp: SphereLight, data: SyncLightData) {
+    static import (comp: SphereLight, data: SyncSphereLightData) {
         super.import(comp, data);
 
         comp.range = data.range;
@@ -32,8 +25,9 @@ export class SyncSphereLight extends SyncLight {
 
 @register
 export class SyncDirectionalLight extends SyncLight {
-    static comp = DirectionalLight;
-    static import (comp: DirectionalLight, data: SyncLightData) {
+    static Data = SyncDirectionLightData;
+
+    static import (comp: DirectionalLight, data: SyncDirectionLightData) {
         super.import(comp, data);
 
         // Aperture: F16_0
@@ -47,8 +41,9 @@ export class SyncDirectionalLight extends SyncLight {
 
 @register
 export class SyncSpotLight extends SyncLight {
-    static comp = SpotLight;
-    static import (comp: SpotLight, data: SyncLightData) {
+    static Data = SyncSpotLightData;
+
+    static import (comp: SpotLight, data: SyncSpotLightData) {
         super.import(comp, data);
     }
 }

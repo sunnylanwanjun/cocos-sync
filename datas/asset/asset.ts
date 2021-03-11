@@ -1,10 +1,18 @@
-import { SyncDataBase } from '../data-base';
+import { Asset } from 'cc';
 
-export class SyncAssetData extends SyncDataBase {
-    name = '';
+export abstract class SyncAssetData implements ISyncAssetData {
+    abstract __type__ = '';
+    __uuid__ = '';
 
-    uuid = '';
     path = '';
 
+    // only in creator
+    asset: Asset | undefined | null;
+
     srcPath = ''; // absolute path
-}
+    dstPath = '';
+    dstUrl = '';
+
+    shouldCheckSrc = true;
+    virtualAsset = false;
+};

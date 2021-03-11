@@ -1,22 +1,12 @@
-import { SyncSceneData } from "../scene";
-import { Editor, path, projectAssetPath } from "../utils/editor";
-import { register, SyncAsset, SyncAssetData } from "./asset";
-import { fse } from '../utils/editor';
-
-export enum ShaderType {
-    Standard,
-    ShaderGraph,
-    Source,
-}
-
-export interface SyncShaderData extends SyncAssetData {
-    shaderType: ShaderType;
-    source: string
-}
+import { SyncSceneData } from "../../scene";
+import { Editor, path, projectAssetPath } from "../../utils/editor";
+import { SyncAsset } from "./asset";
+import { SyncShaderData, ShaderType } from "../../datas/asset/shader";
+import { register } from "../register";
 
 @register
 export class SyncShader extends SyncAsset {
-    static clsName = 'cc.Shader';
+    static DATA = SyncShaderData;
 
     static calcPath (data: SyncShaderData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
@@ -35,7 +25,7 @@ export class SyncShader extends SyncAsset {
         return super.needSync(data);
     }
 
-    static async sync (data: SyncShaderData) {
+    static async import (data: SyncShaderData) {
         if (data.shaderType === ShaderType.ShaderGraph) {
             await Editor.Message.request('shader-graph', 'convert', data.srcPath, data.dstPath);
         }

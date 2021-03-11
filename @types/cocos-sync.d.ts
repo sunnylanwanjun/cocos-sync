@@ -1,9 +1,8 @@
+/// <reference path="../datas/@types/data.d.ts">/>
+
 interface ISyncBase {
 }
 
-interface ISyncDataBase {
-    name: string;
-}
 
 interface ISocket {
     'get-asset-detail' (uuid: string, cb: Function): any;
@@ -47,7 +46,8 @@ interface ICocosSync {
 
     // register
     _registedClasses: Map<string, ISyncBase>;
-    register (dataClass: ISyncDataBase, syncClass: ISyncBase): void;
+    register (dataName: string, syncClass: ISyncBase): void;
+    get (uuid: string): object | undefined;
 }
 
 declare const CocosSync: ICocosSync;

@@ -1,17 +1,21 @@
-import { Vec3, Quat } from '../utils/math';
+import { Vec3, Quat } from 'cc';
 import { SyncComponentData } from './component/component';
 
-export class SyncNodeData {
-    name: string;
-    uuid: string;
+export class SyncNodeData implements ISyncDataBase {
+    __type__ = 'cc.Node';
 
-    position: Vec3;
-    scale: Vec3;
-    eulerAngles: Vec3;
-    rotation: Quat;
+    name = '';
+    uuid = '';
 
-    children: (SyncNodeData | string)[];
+    position = new Vec3;
+    scale = new Vec3;
+    eulerAngles = new Vec3;
+    rotation = new Quat;
+
+    children: (SyncNodeData | string)[] = [];
     components: (SyncComponentData | string)[] = [];
 
-    needMerge: boolean;
+    needMerge: boolean = false;
 }
+
+

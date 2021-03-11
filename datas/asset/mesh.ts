@@ -1,4 +1,4 @@
-import { Vec3 } from 'utils/math';
+import { Vec3 } from 'cc';
 import { SyncAssetData } from './asset';
 
 
@@ -15,19 +15,19 @@ export class SyncSubMeshData {
 }
 
 export class SyncMeshData extends SyncAssetData {
-    name = 'cc.Mesh';
+    __type__ = 'cc.Mesh';
 
-    meshName: string;
+    meshName = '';
 
-    min: Vec3;
-    max: Vec3;
+    min = Vec3;
+    max = Vec3;
 
-    detail: SyncMeshDataDetail;
+    detail: SyncMeshDataDetail | undefined;
 }
 
 export class SyncMeshDataDetail {
-    min: Vec3;
-    max: Vec3;
+    min = Vec3;
+    max = Vec3;
 
     subMeshes: SyncSubMeshData[] = [];
 }

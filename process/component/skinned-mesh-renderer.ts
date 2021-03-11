@@ -1,22 +1,16 @@
-import { find, SkeletalAnimation, Skeleton, SkinnedMeshRenderer } from "cc";
-import * as SyncAssets from '../asset';
-import { CocosSync } from "../cocos-sync";
-import { register } from "./component";
-import { SyncMeshRenderer, SyncMeshRendererData } from "./mesh-renderer";
-
-export interface SyncSkinnedMeshRendererData extends SyncMeshRendererData {
-    skeleton: string
-    rootBonePath: string;
-}
+import { find, Skeleton, SkinnedMeshRenderer } from "cc";
+import { SyncSkinnedMeshRendererData } from "../../datas/component/skinned-mesh-renderer";
+import { register } from "../register";
+import { SyncMeshRenderer } from "./mesh-renderer";
 
 @register
 export class SyncSkinnedMeshRenderer extends SyncMeshRenderer {
-    static comp = SkinnedMeshRenderer;
+    static DATA = SyncSkinnedMeshRendererData;
 
     static import(comp: SkinnedMeshRenderer, data: SyncSkinnedMeshRendererData) {
         super.import(comp, data);
 
-        comp.skeleton = SyncAssets.get(data.skeleton) as Skeleton;
+        comp.skeleton = CocosSync.get(data.skeleton) as Skeleton;
     }
 
     static postImport(comp: SkinnedMeshRenderer, data: SyncSkinnedMeshRendererData) {

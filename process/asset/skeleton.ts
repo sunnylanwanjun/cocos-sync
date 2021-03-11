@@ -1,20 +1,15 @@
 import { Mat4, Skeleton } from 'cc';
+import { SyncSkeletonData } from '../../datas/asset/skeleton';
 import { SyncSceneData } from '../../scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { path, projectAssetPath } from '../../utils/editor';
 import { formatPath } from '../../utils/path';
-import { register, SyncAsset, SyncAssetData } from './asset';
-
-
-
-export interface SyncSkeletonData extends SyncAssetData {
-    bones: string[];
-    bindposes: string[];
-}
+import { register } from '../register';
+import { SyncAsset } from './asset';
 
 @register
 export class SyncSkeleton extends SyncAsset {
-    static clsName = 'cc.Skeleton';
+    static DATA = SyncSkeletonData;
 
     static calcPath (data: SyncSkeletonData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
@@ -25,7 +20,7 @@ export class SyncSkeleton extends SyncAsset {
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
 
-    static async sync (data: SyncSkeletonData) {
+    static async import (data: SyncSkeletonData) {
         let skeleton = new Skeleton;
 
         data.bindposes.forEach(mat => {

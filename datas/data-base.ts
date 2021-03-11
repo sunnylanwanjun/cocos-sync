@@ -1,4 +1,4 @@
 
-export class SyncDataBase implements ISyncDataBase {
+export class SyncDataBase {
     name = '';
 };

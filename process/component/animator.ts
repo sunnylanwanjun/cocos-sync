@@ -2,6 +2,8 @@ import { AnimationClip, js, SkeletalAnimation, _decorator } from "cc";
 import { SyncComponent } from "./component";
 import { register } from '../register';
 import { SyncAnimatorData } from "../../datas/component/animator";
+import { SyncAnimationClip } from '../asset/animation-clip';
+import { SyncAnimationClipData } from '../../datas/asset/animation-clip';
 
 // export interface SyncAnimatorData extends SyncComponentData {
 //     clips: string[];
@@ -10,13 +12,13 @@ import { SyncAnimatorData } from "../../datas/component/animator";
 
 @register
 export class SyncAnimator extends SyncComponent {
-    static DATA = SyncAnimatorData;
+    DATA = SyncAnimatorData;
 
-    static import (comp: SkeletalAnimation, data: SyncAnimatorData) {
+    import (comp: SkeletalAnimation, data: SyncAnimatorData) {
         comp.clips.length = 0;
         comp.useBakedAnimation = false;
         data.clips.forEach(uuid => {
-            let clip = CocosSync.get(uuid) as AnimationClip;
+            let clip = CocosSync.get<SyncAnimationClipData>(uuid).asset as AnimationClip;
             if (clip) {
                 comp.clips.push(clip);
             }

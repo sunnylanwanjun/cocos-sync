@@ -1,5 +1,4 @@
-import { Mat4, Vec3, _decorator, Component, find, js, Quat, Animation } from "cc";
-import { EDITOR } from "cc/env";
+import { Vec3, _decorator, Component, find, js, Quat } from "cc";
 
 const { ccclass, type, property, executeInEditMode } = _decorator;
 
@@ -239,7 +238,7 @@ export class Avatar extends Component {
     @property
     avatarMap: string[] = [];
 
-    onLoad() {
+    onLoad () {
 
         for (let i = 0; i < HumanBodyBones.LastBone; i++) {
             let bonePath = this.avatarMap[i];

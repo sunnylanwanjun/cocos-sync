@@ -11,23 +11,21 @@ export enum TextureType {
 }
 
 export class SyncTextureMipmapDetail {
-    width: number;
-    height: number;
-    datas: number[];
-    dataPath: string;
+    width = 0;
+    height = 0;
+    datas: number[] = [];
+    dataPath = '';
 }
 
 export class SyncTextureDataDetail {
-    format: ImageDataFormat;
+    format = ImageDataFormat.RGBA;
     mipmaps: SyncTextureMipmapDetail[] = [];
 }
 
 export class SyncTextureData extends SyncAssetData {
-    name = 'cc.Texture'
+    __type__ = 'cc.Texture'
 
-    type: TextureType;
-    mipmapCount: number;
-    detail: SyncTextureDataDetail;
-
-    virtualAsset = false;
+    type = TextureType.Texture;
+    mipmapCount = 1;
+    detail: SyncTextureDataDetail | undefined;
 }

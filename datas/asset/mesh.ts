@@ -19,15 +19,15 @@ export class SyncMeshData extends SyncAssetData {
 
     meshName = '';
 
-    min = Vec3;
-    max = Vec3;
+    min: IVec3 | undefined;
+    max: IVec3 | undefined;
 
     detail: SyncMeshDataDetail | undefined;
 }
 
 export class SyncMeshDataDetail {
-    min = Vec3;
-    max = Vec3;
+    min: IVec3 | undefined;
+    max: IVec3 | undefined;
 
     subMeshes: SyncSubMeshData[] = [];
 }

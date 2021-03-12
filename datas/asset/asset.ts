@@ -1,6 +1,7 @@
 import { Asset } from 'cc';
+import { SyncDataBase } from '../data-base';
 
-export abstract class SyncAssetData implements ISyncAssetData {
+export abstract class SyncAssetData extends SyncDataBase {
     abstract __type__ = '';
     __uuid__ = '';
 

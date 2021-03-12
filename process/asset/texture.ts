@@ -1,42 +1,17 @@
-import { SyncSceneData } from '../../scene';
+import { SyncTextureData, SyncTextureDataDetail, TextureType } from '../../datas/asset/texture';
+import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { deserializeData } from '../../utils/deserialize';
 import { Editor, fse, path, projectAssetPath, Sharp } from "../../utils/editor";
-import { register, SyncAsset, SyncAssetData } from "./asset";
+import { register } from '../register';
+import { SyncAsset } from "./asset";
 
-enum ImageDataFormat {
-    RGBA,
-    RGBE,
-}
-
-enum TextureType {
-    Texture,
-    Cube,
-}
-
-interface SyncTextureMipmapDetail {
-    width: number;
-    height: number;
-    datas: number[];
-    dataPath: string;
-}
-
-interface SyncTextureDataDetail {
-    format: ImageDataFormat;
-    mipmaps: SyncTextureMipmapDetail[];
-}
-
-export interface SyncTextureData extends SyncAssetData {
-    type: TextureType;
-    mipmapCount: number;
-    detail: SyncTextureDataDetail;
-}
 
 @register
 export class SyncTexture extends SyncAsset {
-    static clsName = 'cc.Texture';
+    DATA = SyncTextureData;
 
-    static calcPath (data: SyncTextureData, sceneData: SyncSceneData) {
+    calcPath (data: SyncTextureData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         if (!this.supportFormat(data.srcPath)) {
@@ -53,11 +28,11 @@ export class SyncTexture extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}/${subfix}`;
     }
 
-    static supportFormat (path: string) {
+    supportFormat (path: string) {
         return path.endsWith('.png') || path.endsWith('.tga');
     }
 
-    static async sync (data: SyncTextureData, assetBasePath: string) {
+    async import (data: SyncTextureData) {
         if (!this.supportFormat(data.srcPath)) {
             data.detail = await CocosSync.getDetailData(data) as SyncTextureDataDetail;
         }
@@ -70,7 +45,7 @@ export class SyncTexture extends SyncAsset {
                 let subfix = `/mipmap_${index}.png`;
                 let dstPath = data.dstPath;
                 let dstUrl = data.dstUrl;
-                if (detail.mipmaps.length > 1) {
+                if (detail!.mipmaps.length > 1) {
                     dstPath += subfix;
                     dstUrl = dstUrl.replace('/textureCube', subfix + '/textureCube');
                 }
@@ -137,7 +112,7 @@ export class SyncTexture extends SyncAsset {
         }
     }
 
-    static async load (data: SyncTextureData) {
+    async load (data: SyncTextureData) {
         if (data.mipmapCount > 1) {
             data.asset = await Promise.all(new Array(data.mipmapCount).fill(0).map(async (mipmapData, index) => {
                 let subfix = `/mipmap_${index}.png`;

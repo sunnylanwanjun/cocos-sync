@@ -1,43 +1,16 @@
-import { IVec3Like } from 'cc';
-import { CocosSync } from '../cocos-sync';
-import { SyncSceneData } from '../scene';
-import { Editor, fse, path, projectAssetPath } from '../utils/editor';
-import { toGltfMesh } from '../utils/gltf';
-import { formatPath } from '../utils/path';
-import { register, SyncAsset, SyncAssetData } from './asset';
-
-
-export interface SyncSubMeshData {
-    vertices: number[];
-    uv: number[];
-    uv1: number[];
-    normals: number[];
-    colors: number[];
-    boneWeights: number[];
-    indices: number[];
-}
-
-export interface SyncMeshData extends SyncAssetData {
-    meshName: string;
-
-    min: IVec3Like;
-    max: IVec3Like;
-
-    detail: SyncMeshDataDetail;
-}
-
-export interface SyncMeshDataDetail {
-    min: IVec3Like;
-    max: IVec3Like;
-    
-    subMeshes: SyncSubMeshData[];
-}
+import { SyncMeshData, SyncMeshDataDetail } from '../../datas/asset/mesh';
+import { SyncSceneData } from '../../datas/scene';
+import { Editor, fse, path, projectAssetPath } from '../../utils/editor';
+import { toGltfMesh } from '../../utils/gltf';
+import { formatPath } from '../../utils/path';
+import { register } from '../register';
+import { SyncAsset } from './asset';
 
 @register
 export class SyncMesh extends SyncAsset {
-    static clsName = 'cc.Mesh';
+    DATA = SyncMeshData;
 
-    static calcPath (data: SyncMeshData, sceneData: SyncSceneData) {
+    calcPath (data: SyncMeshData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
@@ -46,7 +19,7 @@ export class SyncMesh extends SyncAsset {
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}/${data.meshName}.mesh`;
     }
 
-    static async sync (data: SyncMeshData) {
+    async import (data: SyncMeshData) {
         data.detail = await CocosSync.getDetailData(data) as SyncMeshDataDetail;
 
         let gltf = toGltfMesh(data);

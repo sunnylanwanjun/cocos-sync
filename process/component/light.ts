@@ -3,17 +3,17 @@ import { SyncDirectionLightData, SyncLightData, SyncSphereLightData, SyncSpotLig
 import { register } from '../register';
 import { SyncComponent } from './component';
 
-export class SyncLight extends SyncComponent {
-    static import (comp: Light, data: SyncLightData) {
+export abstract class SyncLight extends SyncComponent {
+    import (comp: Light, data: SyncLightData) {
         comp.color = new Color(data.color[0] * 255, data.color[1] * 255, data.color[2] * 255, data.color[3] * 255);
     }
 }
 
 @register
 export class SyncSphereLight extends SyncLight {
-    static Data = SyncSphereLightData;
+    DATA = SyncSphereLightData;
 
-    static import (comp: SphereLight, data: SyncSphereLightData) {
+    import (comp: SphereLight, data: SyncSphereLightData) {
         super.import(comp, data);
 
         comp.range = data.range;
@@ -25,9 +25,9 @@ export class SyncSphereLight extends SyncLight {
 
 @register
 export class SyncDirectionalLight extends SyncLight {
-    static Data = SyncDirectionLightData;
+    DATA = SyncDirectionLightData;
 
-    static import (comp: DirectionalLight, data: SyncDirectionLightData) {
+    import (comp: DirectionalLight, data: SyncDirectionLightData) {
         super.import(comp, data);
 
         // Aperture: F16_0
@@ -41,9 +41,9 @@ export class SyncDirectionalLight extends SyncLight {
 
 @register
 export class SyncSpotLight extends SyncLight {
-    static Data = SyncSpotLightData;
+    DATA = SyncSpotLightData;
 
-    static import (comp: SpotLight, data: SyncSpotLightData) {
+    import (comp: SpotLight, data: SyncSpotLightData) {
         super.import(comp, data);
     }
 }

@@ -29,25 +29,30 @@ interface IEvent {
 
 interface ICocosSync {
     getDetailData (asset: any): Promise<object | null>;
-    syncSceneData (data: any): Promise<void>;
     syncDataFile (dataPath: string): Promise<void>;
 
     Export_Base: string,
 
     FinishedEvent: IEvent,
 
-    // socket io
-    _ioApp: any;
-    _ioSocket: IIOSocket | undefined;
-
-    // websocket
-    _wsApp: any;
-    _wsSocket: IWSSocket | undefined;
-
     // register
     _registedClasses: Map<string, ISyncBase>;
     register (dataName: string, syncClass: ISyncBase): void;
     get (uuid: string): object | undefined;
+    sync (data: ISyncDataBase, ...args: any[]): Promise<object | undefined>;
+    clearUuid (): void;
+
+    // data
+    sceneData: ISyncSceneData | undefined;
 }
 
 declare const CocosSync: ICocosSync;
+
+
+// socket io
+declare const _ioApp: any;
+declare const _ioSocket: IIOSocket | undefined;
+
+// websocket
+declare const _wsApp: any;
+declare const _wsSocket: IWSSocket | undefined;

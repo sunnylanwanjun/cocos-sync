@@ -1,12 +1,13 @@
 import { Color, error, Material, Texture2D, Vec4 } from "cc";
 import { SyncMaterialData, SyncMaterialPropertyType } from "../../datas/asset/material";
 import { register } from "../register";
-import { SyncSceneData } from "../../scene";
 import { AssetOpration } from "../../utils/asset-operation";
 import { Editor, fse, path, projectAssetPath } from "../../utils/editor";
 import { SyncAsset } from "./asset";
 
 import { ShaderType, SyncShaderData } from "../../datas/asset/shader";
+import { SyncSceneData } from '../../datas/scene';
+import { SyncTextureData } from '../../datas/asset/texture';
 
 const Property2Defines = {
     albedoMap: ['USE_ALBEDO_MAP'],
@@ -18,9 +19,9 @@ const Property2Defines = {
 
 @register
 export class SyncMaterial extends SyncAsset {
-    static DATA = SyncMaterialData;
+    DATA = SyncMaterialData;
 
-    static calcPath (data: SyncMaterialData, sceneData: SyncSceneData) {
+    calcPath (data: SyncMaterialData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
@@ -28,7 +29,7 @@ export class SyncMaterial extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async import (data: SyncMaterialData) {
+    async import (data: SyncMaterialData) {
         let mtlJson: any;
 
         if (fse.existsSync(data.dstPath)) {
@@ -56,7 +57,7 @@ export class SyncMaterial extends SyncAsset {
             mtlJson = fse.readJsonSync(mtlPath);
         }
 
-        let shaderData = CocosSync.get(data.shaderUuid) as any as SyncShaderData;
+        let shaderData = CocosSync.get<SyncShaderData>(data.shaderUuid);
         let hasShader = shaderData && fse.existsSync(shaderData.dstPath);
         if (hasShader) {
             const shaderUuid = await Editor.Message.request('asset-db', 'query-uuid', shaderData.dstUrl);
@@ -99,7 +100,7 @@ export class SyncMaterial extends SyncAsset {
                 value = Number.parseFloat(p.value);
             }
             else if (p.type === SyncMaterialPropertyType.Texture) {
-                value = CocosSync.get(p.value) as Texture2D || undefined;
+                value = (CocosSync.get<SyncTextureData>(p.value).asset as Texture2D) || undefined;
             }
             else if (p.type === SyncMaterialPropertyType.Range) {
                 value = Number.parseFloat(p.value);

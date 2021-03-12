@@ -1,6 +1,6 @@
-import { SyncComponentData } from "./component";
+import { SyncMeshRendererData } from './mesh-renderer';
 
-export class SyncSkinnedMeshRendererData extends SyncComponentData {
+export class SyncSkinnedMeshRendererData extends SyncMeshRendererData {
     __type__ = 'cc.SkinnedMeshRenderer';
 
     skeleton = ''

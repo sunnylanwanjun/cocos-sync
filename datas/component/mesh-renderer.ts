@@ -1,11 +1,10 @@
-import { Vec4 } from 'cc';
 import { SyncComponentData } from './component';
 
 export class SyncLightMapSetting {
     lightmapColor = '';
-    uv = new Vec4;
-    scaleVector: Vec4[] = [];
-    addVector: Vec4[] = [];
+    uv: IVec4 | undefined;
+    scaleVector: IVec4[] = [];
+    addVector: IVec4[] = [];
 }
 
 export class SyncMeshRendererProbe {

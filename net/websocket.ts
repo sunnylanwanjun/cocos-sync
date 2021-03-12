@@ -1,9 +1,9 @@
 import { EDITOR } from 'cc/env';
-import { SyncAssetData } from '../process/asset/asset';
 import { log, ws } from '../utils/editor';
 
 
 if (EDITOR) {
+    let globalAny = (global as any);
 
     function getWsMessage (msg: any) {
         if (msg instanceof Buffer) {
@@ -29,7 +29,7 @@ if (EDITOR) {
     }
 
     function sendWsMessage (msg: object) {
-        if (!CocosSync || CocosSync._wsSocket) {
+        if (!_wsSocket) {
             return;
         }
 
@@ -44,17 +44,19 @@ if (EDITOR) {
         }
 
         // i
-        CocosSync._wsSocket!.send(u16);
+        _wsSocket!.send(u16);
     }
 
-    if (!CocosSync._wsApp) {
-        CocosSync._wsApp = new ws.Server({
+    if (!globalAny._wsApp) {
+        globalAny._wsSocket = undefined;
+        globalAny._wsApp = new ws.Server({
             port: 8878
         })
-        CocosSync._wsApp.on('connection', function connection (ws: any) {
+        globalAny._wsApp.on('connection', function connection (ws: any) {
             log('CocosSync WebSocket Connected!');
 
             ws.on('close', function close () {
+                globalAny._wsSocket = undefined;
                 log('CocosSync WebSocket disconnected');
             });
             // ws.on('sync-datas', syncDataString);
@@ -63,7 +65,7 @@ if (EDITOR) {
                 msg = getWsMessage(msg);
 
                 if (msg.msg === 'sync-datas') {
-                    CocosSync.syncSceneData(msg.data);
+                    CocosSync.sync(msg.data);
                 }
                 // console.log('CocosSync OnMessage : ' + data);
             })
@@ -74,7 +76,7 @@ if (EDITOR) {
 
                     if (msg.msg === 'get-asset-detail') {
                         cb(msg.data.uuid, msg.data.path);
-                        CocosSync._wsSocket?.off('message', callback);
+                        _wsSocket?.off('message', callback);
                     }
                 }
 
@@ -82,10 +84,10 @@ if (EDITOR) {
                     msg: 'get-asset-detail',
                     uuid: uuid
                 });
-                CocosSync._wsSocket?.on('message', callback);
+                _wsSocket?.on('message', callback);
             }
 
-            CocosSync._wsSocket = ws;
+            globalAny._wsSocket = ws;
         });
     }
 }

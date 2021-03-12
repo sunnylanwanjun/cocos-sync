@@ -1,6 +1,6 @@
 import { animation, AnimationClip, Quat, Vec3 } from 'cc';
 import { SyncAnimationClipData, SyncAnimationClipDetail } from '../../datas/asset/animation-clip';
-import { SyncSceneData } from '../../scene';
+import { SyncSceneData } from '../../datas/scene';
 import { deserializeData } from '../../utils/deserialize';
 import { path, projectAssetPath } from '../../utils/editor';
 import { formatPath } from '../../utils/path';
@@ -9,9 +9,9 @@ import { SyncAsset } from './asset';
 
 @register
 export class SyncAnimationClip extends SyncAsset {
-    static DATA = SyncAnimationClipData;
+    DATA = SyncAnimationClipData;
 
-    static calcPath (data: SyncAnimationClipData, sceneData: SyncSceneData) {
+    calcPath (data: SyncAnimationClipData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
 
@@ -30,7 +30,7 @@ export class SyncAnimationClip extends SyncAsset {
         data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
     }
 
-    static async import (data: SyncAnimationClipData) {
+    async import (data: SyncAnimationClipData) {
         let detail = data.detail = await CocosSync.getDetailData(data) as SyncAnimationClipDetail;
 
         var clip = new AnimationClip();

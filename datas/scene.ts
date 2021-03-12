@@ -1,9 +1,10 @@
 import { SyncAssetData } from "./asset/asset";
+import { SyncDataBase } from './data-base';
 import { SyncNodeData } from "./node";
 
-export class SyncSceneData {
-    nodeCount = 0;
-    componentCount = 0;
+export class SyncSceneData extends SyncDataBase {
+    __type__ = 'cc.Scene'
+
     children: (SyncNodeData | string)[] = [];
 
     editorView: SyncNodeData | undefined = undefined;

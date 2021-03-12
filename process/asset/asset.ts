@@ -1,7 +1,7 @@
 import { Asset } from 'cc';
 import { EDITOR } from 'cc/env';
 import { SyncAssetData } from '../../datas/asset/asset';
-import { SyncSceneData } from '../../scene';
+import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { cce, Editor, error, fse, log, path, projectAssetPath, projectPath } from '../../utils/editor';
 import { SyncBase } from '../sync-base';
@@ -16,20 +16,17 @@ if (EDITOR) {
     }
 }
 
-export class SyncAsset extends SyncBase {
-    static clsName = 'cc.Asset';
+export abstract class SyncAsset extends SyncBase {
+    abstract import (data: SyncAssetData): Promise<any>;
 
-    static async import (data: SyncAssetData) {
-    }
-
-    static calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+    calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async needSync (data: SyncAssetData) {
+    async needSync (data: SyncAssetData) {
         if (data.virtualAsset) {
             return true;
         }
@@ -52,11 +49,11 @@ export class SyncAsset extends SyncBase {
         return true;
     }
 
-    static async load (data: SyncAssetData) {
+    async load (data: SyncAssetData) {
         data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl);
     }
 
-    static async save (data: SyncAssetData, asset: Asset | string) {
+    async save (data: SyncAssetData, asset: Asset | string) {
         if (asset instanceof Asset) {
             asset = cce.Utils.serialize(asset);
         }
@@ -73,7 +70,7 @@ export class SyncAsset extends SyncBase {
         }
     }
 
-    static async sync (data: SyncAssetData, sceneData: SyncSceneData) {
+    async sync (data: SyncAssetData, sceneData: SyncSceneData) {
         // log(`Time 1: ${Date.now() / 1000}`);
 
         this.calcPath(data, sceneData);
@@ -81,14 +78,14 @@ export class SyncAsset extends SyncBase {
         let forceSyncAsset = false;
 
         let regs = sceneData.forceSyncAsset.split(',');
-        regs.forEach(reg => {
+        regs.forEach((reg: string) => {
             if (!reg) return;
             if (new RegExp(reg).test(data.srcPath.toLowerCase())) {
                 forceSyncAsset = true;
             }
         })
 
-        if (sceneData.forceSyncAssetTypes && sceneData.forceSyncAssetTypes.includes(data.name)) {
+        if (sceneData.forceSyncAssetTypes && sceneData.forceSyncAssetTypes.includes(data.__type__)) {
             forceSyncAsset = true;
         }
 

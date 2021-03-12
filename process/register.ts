@@ -6,18 +6,9 @@ export function register (syncClass: typeof SyncBase) {
         error('register syncClass failed : should pass a SyncBase.')
         return;
     }
-    let name = '';
-    if(syncClass.DATA && typeof syncClass.DATA !== 'string') {
-        name = new syncClass.DATA().name;
-    }
-    else {
-        name = syncClass.DATA;
-    }
-
-    if (!name) {
-        error('register syncClass failed : should declare the data name.')
+    if (!syncClass.TYPE) {
+        error('register syncClass failed : should declare the data name : ' + syncClass)
         return;
     }
-
-    CocosSync.register(name, syncClass);
+    CocosSync.register(syncClass.TYPE, syncClass);
 }

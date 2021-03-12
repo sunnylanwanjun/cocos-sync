@@ -1,14 +1,14 @@
-import { SyncSceneData } from "../../scene";
 import { Editor, path, projectAssetPath } from "../../utils/editor";
 import { SyncAsset } from "./asset";
 import { SyncShaderData, ShaderType } from "../../datas/asset/shader";
 import { register } from "../register";
+import { SyncSceneData } from '../../datas/scene';
 
 @register
 export class SyncShader extends SyncAsset {
-    static DATA = SyncShaderData;
+    DATA = SyncShaderData;
 
-    static calcPath (data: SyncShaderData, sceneData: SyncSceneData) {
+    calcPath (data: SyncShaderData, sceneData: SyncSceneData) {
         data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
 
         let extname: string = path.extname(data.path);
@@ -17,7 +17,7 @@ export class SyncShader extends SyncAsset {
         data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
     }
 
-    static async needSync (data: SyncShaderData) {
+    async needSync (data: SyncShaderData) {
         if (data.shaderType === ShaderType.Standard) {
             return false;
         }
@@ -25,7 +25,7 @@ export class SyncShader extends SyncAsset {
         return super.needSync(data);
     }
 
-    static async import (data: SyncShaderData) {
+    async import (data: SyncShaderData) {
         if (data.shaderType === ShaderType.ShaderGraph) {
             await Editor.Message.request('shader-graph', 'convert', data.srcPath, data.dstPath);
         }
@@ -34,7 +34,7 @@ export class SyncShader extends SyncAsset {
         }
     }
 
-    static async load (data: SyncShaderData) {
+    async load (data: SyncShaderData) {
         data.asset = data as any;
     }
 }

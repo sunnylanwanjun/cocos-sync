@@ -42,7 +42,7 @@ export class SyncPassStateData {
 }
 
 export class SyncMaterialData extends SyncAssetData {
-    name = 'cc.Material';
+    __type__ = 'cc.Material';
 
     shaderType: ShaderType = ShaderType.Source;
     shaderUuid = '';

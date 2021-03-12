@@ -1,10 +1,11 @@
 import { Component, js, Node } from "cc";
 import { SyncComponentData } from "../../datas/component/component";
+import { SyncDataBase } from '../../datas/data-base';
 import { error, warn } from "../../utils/editor";
 import { SyncBase } from '../sync-base';
 
-export class SyncComponent extends SyncBase {
-    static async sync (data: SyncComponentData, node: Node) {
+export abstract class SyncComponent extends SyncBase {
+    async sync (data: SyncComponentData, node: Node) {
         if (!data.__type__) {
             return;
         }
@@ -26,13 +27,13 @@ export class SyncComponent extends SyncBase {
         this.import(comp, data);
         if (this.postImport) {
             CocosSync.FinishedEvent.on(() => {
-                this.postImport!(comp, data);
+                this.postImport!(comp!, data);
             })
         }
     }
 
-    static import (comp: Component, data: SyncComponentData) {
-    }
+    abstract import (comp: Component, data: SyncComponentData): any;
 
-    static postImport: Function | null = null;
+    postImport (comp: Component, data: SyncComponentData) { }
 }
+

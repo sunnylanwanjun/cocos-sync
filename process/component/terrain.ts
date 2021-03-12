@@ -8,9 +8,9 @@ let _tempVec4 = new Vec4();
 
 @register
 export class SyncTerrain extends SyncComponent {
-    static clsName = 'cc.Terrain';
+    DATA = SyncTerrainData;
 
-    static import (comp: Terrain, compData: SyncTerrainData) {
+    import (comp: Terrain, compData: SyncTerrainData) {
         let heightMapResolution = Math.max(compData.heightmapWidth - 1, compData.heightmapHeight - 1);
         let terrainSize = Math.max(compData.terrainWidth, compData.terrainHeight);
 

@@ -3,12 +3,15 @@ import { EDITOR } from 'cc/env';
 import { io } from '../utils/editor';
 
 if (EDITOR) {
-    if (!CocosSync._ioSocket) {
-        CocosSync._ioSocket = io('8877')
-        CocosSync._ioSocket!.on('connection', (socket: any) => {
+    let globalAny = (global as any);
+    if (!globalAny._ioApp) {
+        globalAny._ioSocket = undefined;
+        globalAny._ioApp = io('8877')
+        globalAny._ioApp!.on('connection', (socket: any) => {
             log('CocosSync SocketIO Connected!');
 
             socket.on('disconnect', () => {
+                globalAny._ioSocket = undefined;
                 log('CocosSync SocketIO Disconnected!');
             });
 
@@ -16,15 +19,15 @@ if (EDITOR) {
                 CocosSync.syncDataFile(data);
             });
             socket.on('sync-datas', function (data: any) {
-                CocosSync.syncSceneData(data);
+                CocosSync.sync(data);
             });
 
             socket['get-asset-detail'] = function (uuid: string, cb: Function) {
-                CocosSync._ioSocket!.emit('get-asset-detail', uuid);
-                CocosSync._ioSocket!.once('get-asset-detail', cb);
+                _ioSocket!.emit('get-asset-detail', uuid);
+                _ioSocket!.once('get-asset-detail', cb);
             }
 
-            CocosSync._ioSocket = socket;
+            globalAny._ioSocket = socket;
         })
     }
 }

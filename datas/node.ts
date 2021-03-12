@@ -1,4 +1,4 @@
-import { Vec3, Quat } from 'cc';
+import { Node } from 'cc';
 import { SyncComponentData } from './component/component';
 
 export class SyncNodeData implements ISyncDataBase {
@@ -7,15 +7,22 @@ export class SyncNodeData implements ISyncDataBase {
     name = '';
     uuid = '';
 
-    position = new Vec3;
-    scale = new Vec3;
-    eulerAngles = new Vec3;
-    rotation = new Quat;
+    position: IVec3 | undefined;
+    scale: IVec3 | undefined;
+    eulerAngles: IVec3 | undefined;
+    rotation: IQuat | undefined;
 
     children: (SyncNodeData | string)[] = [];
     components: (SyncComponentData | string)[] = [];
 
     needMerge: boolean = false;
+
+    // only in creator
+    parentIndex = -1;
+    node: Node | undefined;
+
+    mergeToNodeIndex = -1;
+    matrix: IMat4 | undefined;
 }
 
 

@@ -23,7 +23,7 @@ export class SyncMeshRenderer extends SyncComponent {
             let lightmapSetting = deserializeData(data.lightmapSetting);
 
             if (lightmapSetting) {
-                comp.lightmapSettings.texture = CocosSync.get<SyncTextureData>(lightmapSetting.lightmapColor).asset as Texture2D || null;
+                comp.lightmapSettings.texture = CocosSync.get<SyncTextureData>(lightmapSetting.lightmapColor).asset! as Texture2D || null;
                 comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv as Vec4);
                 (comp as any)._onUpdateLightingmap();
 
@@ -55,7 +55,7 @@ export class SyncMeshRenderer extends SyncComponent {
             }
         })
 
-        let m = CocosSync.get<SyncMeshData>(data.mesh).asset as Mesh;
+        let m = CocosSync.get<SyncMeshData>(data.mesh).asset! as Mesh;
         comp.mesh = m;
 
         if (comp.model && comp.model.subModels) {

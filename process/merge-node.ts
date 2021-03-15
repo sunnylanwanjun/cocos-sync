@@ -2,10 +2,10 @@ import { Component, Material, Mesh, MeshRenderer } from 'cc';
 import { SyncMaterialData } from '../datas/asset/material';
 import { SyncMeshData } from '../datas/asset/mesh';
 import { SyncMeshRendererData } from '../datas/component/mesh-renderer';
-import { SyncNodeData } from '../datas/node';
 import { deserializeData } from '../utils/deserialize';
 import { error } from '../utils/editor';
 import { SyncMeshRenderer } from './component/mesh-renderer';
+import { PrivateSyncNodeData } from './node';
 
 let _mergeList: any[] = [];
 
@@ -25,7 +25,7 @@ export const merge = {
         }
     },
 
-    mergeNodeData (data: SyncNodeData, nodeList: SyncNodeData[]) {
+    mergeNodeData (data: PrivateSyncNodeData, nodeList: PrivateSyncNodeData[]) {
 
         if (!data.components) {
             return;
@@ -49,9 +49,9 @@ export const merge = {
 
             let mrData = (cdata as SyncMeshRendererData);
             let materials = mrData.materilas.map(uuid => {
-                return CocosSync.get<SyncMaterialData>(uuid).asset as Material;
+                return CocosSync.get<SyncMaterialData>(uuid).asset! as Material;
             })
-            let m = CocosSync.get<SyncMeshData>(mrData.mesh).asset;
+            let m = CocosSync.get<SyncMeshData>(mrData.mesh).asset!;
 
             let instanceObject: any = rootNode.getComponent('InstanceObject');
             if (instanceObject) {

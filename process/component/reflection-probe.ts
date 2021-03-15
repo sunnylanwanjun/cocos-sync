@@ -10,7 +10,7 @@ export class SyncReflectionProbe extends SyncComponent {
     DATA = SyncReflectionProbeData;
 
     import (comp: ReflectionProbe, data: SyncReflectionProbeData) {
-        var asset = CocosSync.get<SyncTextureData>(data.bakedTexture).asset as TextureCube;
+        var asset = CocosSync.get<SyncTextureData>(data.bakedTexture).asset! as TextureCube;
 
         if (Array.isArray(asset)) {
             comp.mipmaps = asset as any as TextureCube[];

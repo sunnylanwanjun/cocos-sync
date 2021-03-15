@@ -18,7 +18,7 @@ export class SyncAnimator extends SyncComponent {
         comp.clips.length = 0;
         comp.useBakedAnimation = false;
         data.clips.forEach(uuid => {
-            let clip = CocosSync.get<SyncAnimationClipData>(uuid).asset as AnimationClip;
+            let clip = CocosSync.get<SyncAnimationClipData>(uuid).asset! as AnimationClip;
             if (clip) {
                 comp.clips.push(clip);
             }

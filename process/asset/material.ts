@@ -60,7 +60,7 @@ export class SyncMaterial extends SyncAsset {
         let shaderData = CocosSync.get<SyncShaderData>(data.shaderUuid);
         let hasShader = shaderData && fse.existsSync(shaderData.dstPath);
         if (hasShader) {
-            const shaderUuid = await Editor.Message.request('asset-db', 'query-uuid', shaderData.dstUrl);
+            const shaderUuid = await Editor.Message.request('asset-db', 'query-uuid', shaderData!.dstUrl);
             if (!mtlJson._effectAsset) {
                 mtlJson._effectAsset = {}
             }
@@ -100,7 +100,7 @@ export class SyncMaterial extends SyncAsset {
                 value = Number.parseFloat(p.value);
             }
             else if (p.type === SyncMaterialPropertyType.Texture) {
-                value = (CocosSync.get<SyncTextureData>(p.value).asset as Texture2D) || undefined;
+                value = (CocosSync.get<SyncTextureData>(p.value).asset! as Texture2D) || undefined;
             }
             else if (p.type === SyncMaterialPropertyType.Range) {
                 value = Number.parseFloat(p.value);

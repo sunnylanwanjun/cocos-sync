@@ -11,7 +11,7 @@ export class SyncSkinnedMeshRenderer extends SyncMeshRenderer {
     import (comp: SkinnedMeshRenderer, data: SyncSkinnedMeshRendererData) {
         super.import(comp, data);
 
-        comp.skeleton = CocosSync.get<SyncSkeletonData>(data.skeleton).asset as Skeleton;
+        comp.skeleton = CocosSync.get<SyncSkeletonData>(data.skeleton).asset! as Skeleton;
     }
 
     postImport (comp: SkinnedMeshRenderer, data: SyncSkinnedMeshRendererData) {

@@ -38,7 +38,7 @@ interface ICocosSync {
     // register
     _registedClasses: Map<string, ISyncBase>;
     register (dataName: string, syncClass: ISyncBase): void;
-    get (uuid: string): object | undefined;
+    get<T> (uuid: string): T;
     sync (data: ISyncDataBase, ...args: any[]): Promise<object | undefined>;
     clearUuid (): void;
 

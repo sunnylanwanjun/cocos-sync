@@ -6,11 +6,21 @@ import { merge } from './merge-node';
 import { register } from './register';
 import { SyncBase } from './sync-base';
 
+export class PrivateSyncNodeData extends SyncNodeData {
+    children: PrivateSyncNodeData[] = []
+
+    parentIndex = -1;
+    node: Node | undefined;
+
+    mergeToNodeIndex = -1;
+    matrix: IMat4 | undefined;
+}
+
 @register
 export class SyncNode extends SyncBase {
     DATA = SyncNodeData;
 
-    async sync (data: SyncNodeData, parent: Node | null = null) {
+    async sync (data: PrivateSyncNodeData, parent: Node | null = null) {
         if (!parent) {
             parent = find(CocosSync.Export_Base);
             if (!parent) {

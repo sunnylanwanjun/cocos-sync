@@ -1,18 +1,22 @@
 import { Mat4, Node, Quat, Vec3 } from 'cc';
 import { cce } from '../../advanced-pipeline/utils/editor';
-import { SyncNodeData } from '../datas/node';
 import { SyncSceneData } from '../datas/scene';
 import { deserializeData } from '../utils/deserialize';
 import { Editor, log, warn } from '../utils/editor';
 import { merge } from './merge-node';
+import { PrivateSyncNodeData, PrivateSyncNodeData as SyncNodeData } from './node';
 import { register } from './register';
 import { SyncBase } from './sync-base';
+
+class PrivateSyncSceneData extends SyncSceneData {
+    children: SyncNodeData[] = [];
+}
 
 
 let _nodeList: SyncNodeData[] = [];
 let _rootNodeList: SyncNodeData[] = [];
 let _currentNodeIndex = 0;
-function collectSceneData (data: SyncSceneData) {
+function collectSceneData (data: PrivateSyncSceneData) {
     merge.clear();
 
     _nodeList.length = 0;
@@ -169,7 +173,7 @@ function syncDatas () {
 export class SyncScene extends SyncBase {
     DATA = SyncSceneData;
 
-    async sync (data: SyncSceneData) {
+    async sync (data: PrivateSyncSceneData) {
         if (data.editorView) {
             cce.Camera._camera.node.position = data.editorView.position;
             // cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;

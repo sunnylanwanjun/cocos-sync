@@ -27,7 +27,12 @@ export class SyncMeshRenderer extends SyncComponent {
                 comp.lightmapSettings.uvParam = new Vec4(lightmapSetting.uv as Vec4);
                 (comp as any)._onUpdateLightingmap();
 
-                if (comp.lightmapSettings.texture && lightmapSetting.addVector && lightmapSetting.scaleVector) {
+                if (comp.lightmapSettings.texture
+                    && lightmapSetting.addVector
+                    && lightmapSetting.addVector.length
+                    && lightmapSetting.scaleVector
+                    && lightmapSetting.scaleVector.length
+                ) {
                     let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting)) as LightmapSetting;
                     if (!settingComp) {
                         settingComp = comp.node.addComponent(js.getClassName(LightmapSetting)) as LightmapSetting

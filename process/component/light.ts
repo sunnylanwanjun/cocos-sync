@@ -29,13 +29,7 @@ export class SyncDirectionalLight extends SyncLight {
 
     import (comp: DirectionalLight, data: SyncDirectionLightData) {
         super.import(comp, data);
-
-        // Aperture: F16_0
-        // Shutter: D125
-        // ISO: ISO100
-        let ev100 = 14.965784284662087;
-
-        comp.illuminance = Math.floor(data.intensity / (0.833333 / (2.0 ** ev100)));
+        comp.illuminance = data.intensity;
     }
 }
 
@@ -45,5 +39,12 @@ export class SyncSpotLight extends SyncLight {
 
     import (comp: SpotLight, data: SyncSpotLightData) {
         super.import(comp, data);
+
+        comp.range = data.range;
+        comp.size = data.size;
+        comp.term = Light.PhotometricTerm.LUMINANCE;
+        comp.luminance = data.intensity;
+
+        comp.spotAngle = data.spotAngle;
     }
 }

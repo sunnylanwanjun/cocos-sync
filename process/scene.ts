@@ -1,4 +1,4 @@
-import { Mat4, Node, Quat, Vec3 } from 'cc';
+import { find, Mat4, Node, Quat, Vec3 } from 'cc';
 import { cce } from '../../advanced-pipeline/utils/editor';
 import { SyncSceneData } from '../datas/scene';
 import { deserializeData } from '../utils/deserialize';
@@ -192,6 +192,13 @@ export class SyncScene extends SyncBase {
             }
 
             cce.Engine.repaintInEditMode()
+        }
+
+        if (data.clearExported) {
+            let rootNode = find(CocosSync.Export_Base);
+            if (rootNode) {
+                rootNode.parent = null;
+            }
         }
 
         collectSceneData(data);

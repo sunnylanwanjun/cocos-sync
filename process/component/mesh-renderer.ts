@@ -9,6 +9,7 @@ import { SyncMeshRendererData } from "../../datas/component/mesh-renderer";
 import { SyncMaterialData } from '../../datas/asset/material';
 import { SyncMeshData } from '../../datas/asset/mesh';
 import { SyncTextureData } from '../../datas/asset/texture';
+import { MeshRendererSetting } from '../../extend-component/mesh-renderer-setting';
 
 @register
 export class SyncMeshRenderer extends SyncComponent {
@@ -43,6 +44,14 @@ export class SyncMeshRenderer extends SyncComponent {
 
                     lightMapValid = true;
                 }
+            }
+        }
+
+        // mesh vertex attribute
+        if (data.requestSettings) {
+            let setting = comp.getComponent(MeshRendererSetting);
+            if (!setting) {
+                setting = comp.addComponent(MeshRendererSetting)
             }
         }
 

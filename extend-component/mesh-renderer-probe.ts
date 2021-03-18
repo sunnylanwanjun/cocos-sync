@@ -23,9 +23,9 @@ export class MeshRendererProbe extends Component {
     _materialDirty = false;
 
     start () {
-        if (EDITOR) {
-            cce.Asset.on('asset-refresh', this.updateMaterials.bind(this));
-        }
+        // if (EDITOR) {
+        //     cce.Asset.on('asset-refresh', this.updateMaterials.bind(this));
+        // }
 
         this.updateMaterials('**');
     }
@@ -40,6 +40,21 @@ export class MeshRendererProbe extends Component {
                 }
             })
             if (reflectionProbeInfo && reflectionProbeInfo.reflectionProbe) {
+                if (meshRenderer.model) {
+                    meshRenderer.model.subModels.forEach((sm, index) => {
+                        let macros: any[] = (sm as any)._patches || [];
+                        let m = macros.find(m => m.name === 'CC_CUSTOM_IBL');
+                        if (m) {
+                            m.value = true;
+                        }
+                        else {
+                            macros.push({ name: 'CC_CUSTOM_IBL', value: true });
+                        }
+
+                        sm.onMacroPatchesStateChanged(macros);
+                    })
+                }
+
                 let envMap = reflectionProbeInfo.reflectionProbe.cube;
                 let materials = meshRenderer.sharedMaterials;
                 for (let i = 0, l = materials.length; i < l; i++) {
@@ -48,7 +63,7 @@ export class MeshRendererProbe extends Component {
                     }
                     let m = meshRenderer.getMaterialInstance(i);
                     if (!m) continue;
-                    m.setProperty('envMap', envMap!);
+                    m.setProperty('customEnvMap', envMap!);
                 }
             }
         }

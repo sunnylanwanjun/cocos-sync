@@ -37,6 +37,11 @@ export class SyncTexture extends SyncAsset {
             data.detail = await CocosSync.getDetailData(data) as SyncTextureDataDetail;
         }
 
+        let mipmapCount = 1;
+        if (data.detail && data.detail.mipmaps) {
+            mipmapCount = data.detail.mipmaps.length;
+        }
+
         let detail = data.detail;
         if (detail) {
             await Promise.all(detail.mipmaps.map(async (mipmapData, index) => {
@@ -89,7 +94,7 @@ export class SyncTexture extends SyncAsset {
                         await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
                     }
                 }
-                else if (data.type === TextureType.Texture && data.mipmapCount === 1) {
+                else if (data.type === TextureType.Texture && mipmapCount === 1) {
                     let metaPath = dstPath + '.meta';
                     if (fse.existsSync(metaPath)) {
                         let meta = fse.readJSONSync(metaPath);
@@ -113,8 +118,13 @@ export class SyncTexture extends SyncAsset {
     }
 
     async load (data: SyncTextureData) {
-        if (data.mipmapCount > 1) {
-            data.asset = await Promise.all(new Array(data.mipmapCount).fill(0).map(async (mipmapData, index) => {
+        let mipmapCount = 1;
+        if (data.detail && data.detail.mipmaps) {
+            mipmapCount = data.detail.mipmaps.length;
+        }
+
+        if (mipmapCount > 1) {
+            data.asset = await Promise.all(new Array(mipmapCount).fill(0).map(async (mipmapData, index) => {
                 let subfix = `/mipmap_${index}.png`;
                 let dstUrl = data.dstUrl.replace('/textureCube', subfix + '/textureCube');
                 return await AssetOpration.loadAssetByUrl(dstUrl)

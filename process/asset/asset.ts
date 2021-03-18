@@ -31,7 +31,7 @@ export abstract class SyncAsset extends SyncBase {
             return true;
         }
         if (data.shouldCheckSrc && !fse.existsSync(data.srcPath)) {
-            return false;
+            throw 'asset not exists : ' + data.srcPath;
         }
 
         const srcStats = fse.statSync(data.srcPath);

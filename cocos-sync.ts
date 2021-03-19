@@ -1,6 +1,6 @@
 import { error } from "cc";
 
-import { EDITOR, fse, path } from "./utils/editor";
+import { EDITOR, fse, log, path } from "./utils/editor";
 import Event from './utils/event';
 import { SyncBase } from "./process/sync-base";
 import { SyncAssetData } from './datas/asset/asset';
@@ -55,6 +55,8 @@ class CocosSyncClass implements ICocosSync {
     }
 
     async getDetailData (assetData: SyncAssetData): Promise<object | null> {
+        log('getDetailData : ' + assetData.path)
+
         if (!_ioSocket && !_wsSocket) {
             return null;
         }

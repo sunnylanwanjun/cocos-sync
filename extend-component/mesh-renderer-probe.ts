@@ -63,7 +63,7 @@ export class MeshRendererProbe extends Component {
                     }
                     let m = meshRenderer.getMaterialInstance(i);
                     if (!m) continue;
-                    m.setProperty('customEnvMap', envMap!);
+                    m.setProperty('envMap', envMap!);
                 }
             }
         }

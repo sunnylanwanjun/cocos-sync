@@ -2,7 +2,7 @@ import { SyncTextureData, SyncTextureDataDetail, TextureType } from '../../datas
 import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { deserializeData } from '../../utils/deserialize';
-import { Editor, fse, path, projectAssetPath, Sharp } from "../../utils/editor";
+import { Editor, fse, log, path, projectAssetPath, Sharp } from "../../utils/editor";
 import { register } from '../register';
 import { SyncAsset } from "./asset";
 
@@ -118,6 +118,8 @@ export class SyncTexture extends SyncAsset {
     }
 
     async load (data: SyncTextureData) {
+        log('load asset : ' + data.path);
+
         let mipmapCount = 1;
         if (data.detail && data.detail.mipmaps) {
             mipmapCount = data.detail.mipmaps.length;

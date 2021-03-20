@@ -1,8 +1,7 @@
 import { find, Mat4, Node, Quat, Vec3 } from 'cc';
-import { cce } from '../../advanced-pipeline/utils/editor';
 import { SyncSceneData } from '../datas/scene';
 import { deserializeData } from '../utils/deserialize';
-import { Editor, log, warn } from '../utils/editor';
+import { cce, Editor, log, warn } from '../utils/editor';
 import { merge } from './merge-node';
 import { PrivateSyncNodeData, PrivateSyncNodeData as SyncNodeData } from './node';
 import { register } from './register';

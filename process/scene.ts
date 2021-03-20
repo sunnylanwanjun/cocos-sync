@@ -143,7 +143,7 @@ function syncDatasFrame () {
             CocosSync.FinishedEvent.invoke();
 
             setTimeout(() => {
-                Editor.Message.request('scene', 'soft-reload');
+                // Editor.Message.request('scene', 'soft-reload');
             }, 1000)
 
             log(`End sync: ${Date.now() - _startTime} ms`);

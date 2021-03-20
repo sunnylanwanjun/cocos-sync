@@ -32,6 +32,7 @@ interface ICocosSync {
     syncDataFile (dataPath: string): Promise<void>;
 
     Export_Base: string,
+    Export_Asset_Proxy: string,
 
     FinishedEvent: IEvent,
 

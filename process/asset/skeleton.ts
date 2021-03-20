@@ -3,7 +3,7 @@ import { SyncSkeletonData } from '../../datas/asset/skeleton';
 import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { path, projectAssetPath } from '../../utils/editor';
-import { formatPath } from '../../utils/path';
+import { formatPath, relpaceExt } from '../../utils/path';
 import { register } from '../register';
 import { SyncAsset } from './asset';
 
@@ -11,13 +11,9 @@ import { SyncAsset } from './asset';
 export class SyncSkeleton extends SyncAsset {
     DATA = SyncSkeletonData;
 
-    calcPath (data: SyncSkeletonData, sceneData: SyncSceneData) {
-        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
-        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
-
-        let basenameNoExt = path.basename(data.dstPath).replace(path.extname(data.dstPath), '');
-        data.dstPath = path.join(path.dirname(data.dstPath), basenameNoExt + '.skeleton');
-        data.dstUrl = `db://assets/${formatPath(path.relative(projectAssetPath, data.dstPath))}`;
+    getDstRelPath(data: SyncSkeletonData) {
+        let dstPath = super.getDstRelPath(data);
+        return relpaceExt(dstPath, '.skeleton');
     }
 
     async import (data: SyncSkeletonData) {

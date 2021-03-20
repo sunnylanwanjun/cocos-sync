@@ -9,6 +9,7 @@ import { SyncSceneData } from './datas/scene';
 // if (EDITOR) {
 class CocosSyncClass implements ICocosSync {
     Export_Base = "Export_Base";
+    Export_Asset_Proxy = "Export_Proxy"
 
     FinishedEvent = new Event()
 

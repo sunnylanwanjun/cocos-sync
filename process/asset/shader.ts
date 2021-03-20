@@ -1,20 +1,24 @@
-import { Editor, path, projectAssetPath } from "../../utils/editor";
+import { Editor, fse } from "../../utils/editor";
 import { SyncAsset } from "./asset";
 import { SyncShaderData, ShaderType } from "../../datas/asset/shader";
 import { register } from "../register";
-import { SyncSceneData } from '../../datas/scene';
+import { relpaceExt } from "../../utils/path";
 
 @register
 export class SyncShader extends SyncAsset {
     DATA = SyncShaderData;
 
-    calcPath (data: SyncShaderData, sceneData: SyncSceneData) {
-        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
-
-        let extname: string = path.extname(data.path);
-        data.path = data.path.replace(extname, '') + '.effect';
-        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
-        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
+    getDstRelPath (data: SyncShaderData) {
+        let dstRelPath = super.getDstRelPath(data);
+        return relpaceExt(dstRelPath, '.effect');
+    }
+    getDstPath (data: SyncShaderData) {
+        let dstPath = super.getDstPath(data);
+        let proxyPath = dstPath.replace(CocosSync.sceneData!.exportBasePath, CocosSync.Export_Asset_Proxy);
+        if (fse.existsSync(proxyPath)) {
+            return proxyPath;
+        }
+        return dstPath;
     }
 
     async needSync (data: SyncShaderData) {

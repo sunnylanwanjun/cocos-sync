@@ -8,6 +8,7 @@ import { SyncAsset } from "./asset";
 import { ShaderType, SyncShaderData } from "../../datas/asset/shader";
 import { SyncSceneData } from '../../datas/scene';
 import { SyncTextureData } from '../../datas/asset/texture';
+import { relpaceExt } from "../../utils/path";
 
 const Property2Defines = {
     albedoMap: ['USE_ALBEDO_MAP'],
@@ -21,12 +22,9 @@ const Property2Defines = {
 export class SyncMaterial extends SyncAsset {
     DATA = SyncMaterialData;
 
-    calcPath (data: SyncMaterialData, sceneData: SyncSceneData) {
-        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
-
-        data.path = data.path.replace(path.extname(data.path), '') + '.mtl';
-        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
-        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
+    getDstRelPath (data: SyncMaterialData) {
+        let dstRelPath = super.getDstRelPath(data);
+        return relpaceExt(dstRelPath, '.mtl');
     }
 
     async import (data: SyncMaterialData) {
@@ -40,15 +38,15 @@ export class SyncMaterial extends SyncAsset {
             if (data.shaderType === ShaderType.Standard) {
                 url = 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl';
             }
-            else if (data.shaderType === ShaderType.IPhone_LightMap) {
-                url = 'db://assets/lib/cocos-sync/builtin/iPhone/light-map.mtl';
-            }
-            else if (data.shaderType === ShaderType.IPhone_SolidTexture) {
-                url = 'db://assets/lib/cocos-sync/builtin/iPhone/solid-texture.mtl';
-            }
-            else if (data.shaderType === ShaderType.IPhone_AlphaBlend_TwoSides) {
-                url = 'db://assets/lib/cocos-sync/builtin/iPhone/alpha-blend-two-sides.mtl';
-            }
+            // else if (data.shaderType === ShaderType.IPhone_LightMap) {
+            //     url = 'db://assets/lib/cocos-sync/builtin/iPhone/light-map.mtl';
+            // }
+            // else if (data.shaderType === ShaderType.IPhone_SolidTexture) {
+            //     url = 'db://assets/lib/cocos-sync/builtin/iPhone/solid-texture.mtl';
+            // }
+            // else if (data.shaderType === ShaderType.IPhone_AlphaBlend_TwoSides) {
+            //     url = 'db://assets/lib/cocos-sync/builtin/iPhone/alpha-blend-two-sides.mtl';
+            // }
             else {
                 url = 'db://internal/default-material.mtl';
             }
@@ -178,6 +176,14 @@ export class SyncMaterial extends SyncAsset {
 
         // defines
         (mtl as any)._defines.forEach((d: any) => {
+
+            // delete builtin defines
+            for (let name in d) {
+                if (name.toLowerCase().startsWith('cc_')) {
+                    d[name] = undefined;
+                }
+            }
+
             for (let dn in defines) {
                 d[dn] = defines[dn];
             }

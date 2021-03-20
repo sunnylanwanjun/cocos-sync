@@ -3,6 +3,7 @@ import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { deserializeData } from '../../utils/deserialize';
 import { Editor, fse, log, path, projectAssetPath, Sharp } from "../../utils/editor";
+import { relpaceExt } from '../../utils/path';
 import { register } from '../register';
 import { SyncAsset } from "./asset";
 
@@ -11,21 +12,23 @@ import { SyncAsset } from "./asset";
 export class SyncTexture extends SyncAsset {
     DATA = SyncTextureData;
 
-    calcPath (data: SyncTextureData, sceneData: SyncSceneData) {
-        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
-
+    getDstRelPath (data: SyncTextureData) {
+        let dstPath = super.getDstRelPath(data);
         if (!this.supportFormat(data.srcPath)) {
-            let basenameNoExt = path.basename(data.path).replace(path.extname(data.path), '');
-            data.path = path.join(path.dirname(data.path), basenameNoExt + '.png');
+            dstPath = relpaceExt(dstPath, '.png')
         }
+        return dstPath;
+    }
 
-        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
+    getDstUrl (data: SyncTextureData) {
+        let dstUrl = super.getDstUrl(data);
 
         let subfix = 'texture';
         if (data.type === TextureType.Cube) {
             subfix = 'textureCube';
         }
-        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}/${subfix}`;
+
+        return `${dstUrl}/${subfix}`;
     }
 
     supportFormat (path: string) {
@@ -133,7 +136,7 @@ export class SyncTexture extends SyncAsset {
             })) as any;
         }
         else {
-            data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl);
+            data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl) as any;
         }
     }
 }

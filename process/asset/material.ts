@@ -38,15 +38,6 @@ export class SyncMaterial extends SyncAsset {
             if (data.shaderType === ShaderType.Standard) {
                 url = 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl';
             }
-            // else if (data.shaderType === ShaderType.IPhone_LightMap) {
-            //     url = 'db://assets/lib/cocos-sync/builtin/iPhone/light-map.mtl';
-            // }
-            // else if (data.shaderType === ShaderType.IPhone_SolidTexture) {
-            //     url = 'db://assets/lib/cocos-sync/builtin/iPhone/solid-texture.mtl';
-            // }
-            // else if (data.shaderType === ShaderType.IPhone_AlphaBlend_TwoSides) {
-            //     url = 'db://assets/lib/cocos-sync/builtin/iPhone/alpha-blend-two-sides.mtl';
-            // }
             else {
                 url = 'db://internal/default-material.mtl';
             }

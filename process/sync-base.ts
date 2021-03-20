@@ -5,7 +5,7 @@ export abstract class SyncBase {
 
     private static _instance: SyncBase | undefined;
     static get instance () {
-        if (!this._instance) {
+        if (!this._instance || this._instance.constructor !== this) {
             // @ts-ignore
             this._instance = new this;
         }
@@ -18,7 +18,7 @@ export abstract class SyncBase {
 
     private static __TYPE__ = '';
     static get TYPE () {
-        if (!this.__TYPE__) {
+        if (!Object.getOwnPropertyDescriptor(this, '__TYPE__')) {
             let name = ''
             if (this.DATA && typeof this.DATA !== 'string') {
                 //@ts-ignore

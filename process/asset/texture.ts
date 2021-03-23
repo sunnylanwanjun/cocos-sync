@@ -1,8 +1,7 @@
 import { SyncTextureData, SyncTextureDataDetail, TextureType } from '../../datas/asset/texture';
-import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { deserializeData } from '../../utils/deserialize';
-import { Editor, fse, log, path, projectAssetPath, Sharp } from "../../utils/editor";
+import { Buffer, Editor, fse, log, path, Sharp } from "../../utils/editor";
 import { relpaceExt } from '../../utils/path';
 import { register } from '../register';
 import { SyncAsset } from "./asset";
@@ -64,12 +63,20 @@ export class SyncTexture extends SyncAsset {
                     fse.copyFileSync(mipmapData.dataPath, dstPath);
                 }
                 else {
+                    let datas;
+                    if (mipmapData.rawDataPath) {
+                        datas = fse.readFileSync(mipmapData.rawDataPath);
+                    }
+                    else if (mipmapData.datas) {
+                        datas = mipmapData.datas;
+                    }
+
                     const channels = 4;
                     const rgbaPixel = 0x00000000;
                     const opts = { raw: { width: mipmapData.width, height: mipmapData.height, channels } };
 
                     let buffer = Buffer.alloc(mipmapData.width * mipmapData.height * channels, rgbaPixel);
-                    let datas = mipmapData.datas;
+
                     for (let i = 0; i < datas.length; i++) {
                         buffer[i] = datas[i];
                     }

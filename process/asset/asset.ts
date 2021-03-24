@@ -47,21 +47,32 @@ export abstract class SyncAsset extends SyncBase {
     // 
 
     async needSync (data: SyncAssetData) {
+        let statsPath = '';
         if (data.virtualAsset) {
-            return true;
-        }
-        if (data.shouldCheckSrc && !fse.existsSync(data.srcPath)) {
-            throw 'asset not exists : ' + data.srcPath;
+            if (data.virtualAssetPath) {
+                statsPath = data.virtualAssetPath;
+            }
+            else {
+                return true;
+            }
         }
 
-        const srcStats = fse.statSync(data.srcPath);
+        if (!statsPath) {
+            statsPath = data.srcPath;
+        }
+
+        if (data.shouldCheckSrc && !fse.existsSync(statsPath)) {
+            throw 'asset not exists : ' + statsPath;
+        }
+
+        const srcStats = fse.statSync(statsPath);
         let mtime = srcStats.mtime.toJSON();
 
-        if (mtimeConfigs[data.srcPath] === mtime && fse.existsSync(data.dstPath)) {
+        if (mtimeConfigs[data.__uuid__] === mtime && fse.existsSync(data.dstPath)) {
             return false;
         }
 
-        mtimeConfigs[data.srcPath] = mtime;
+        mtimeConfigs[data.__uuid__] = mtime;
 
         fse.ensureDirSync(path.dirname(mtimeConfigsPath));
         fse.writeJSONSync(mtimeConfigsPath, mtimeConfigs);

@@ -98,9 +98,10 @@ async function syncAssets () {
         let data = deserializeData(sceneData.assets[i]);
 
         if (data) {
-            log(`Begin sync asset: ${i} - ${total} - ${data.path}`);
+            log(`------------------- Begin sync asset: ${i} - ${total} - ${data.path} -------------------`);
             await CocosSync.sync(data, sceneData!);
-            log(`End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s `);
+            log(`------------------- End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s -------------------`);
+            log(' ')
         }
     }
 
@@ -145,7 +146,7 @@ function syncDatasFrame () {
                 // Editor.Message.request('scene', 'soft-reload');
             }, 1000)
 
-            log(`End sync: ${Date.now() - _startTime} ms`);
+            log(`End sync Nodes: ${Date.now() - _startTime} ms`);
 
             clearInterval(_syncIntervalID);
             _syncIntervalID = -1;
@@ -161,7 +162,7 @@ function syncDatas () {
         clearInterval(_syncIntervalID);
     }
 
-    log('Begin sync...');
+    log('Begin sync Nodes...');
     _startTime = Date.now();
 
     syncDatasFrame();
@@ -173,6 +174,10 @@ export class SyncScene extends SyncBase {
     DATA = SyncSceneData;
 
     async sync (data: PrivateSyncSceneData) {
+        let time = Date.now();
+        log('******************** Begin Sync scene ********************')
+        log(' ')
+
         if (data.editorView) {
             cce.Camera._camera.node.position = data.editorView.position;
             // cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
@@ -205,5 +210,8 @@ export class SyncScene extends SyncBase {
         await syncAssets();
 
         syncDatas();
+
+        log(' ')
+        log(`******************** End Sync scene : ${(Date.now() - time) / 1000} s ********************`)
     }
 }

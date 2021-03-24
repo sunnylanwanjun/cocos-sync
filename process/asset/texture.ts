@@ -128,9 +128,10 @@ export class SyncTexture extends SyncAsset {
     }
 
     async load (data: SyncTextureData) {
-        log('load asset : ' + data.path);
+        let time = Date.now();
+        log('Begin load asset : ' + data.path);
 
-        let mipmapCount = 1;
+        let mipmapCount = data.mipmapCount;
         if (data.detail && data.detail.mipmaps) {
             mipmapCount = data.detail.mipmaps.length;
         }
@@ -145,6 +146,8 @@ export class SyncTexture extends SyncAsset {
         else {
             data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl) as any;
         }
+
+        log(`End load asset : ${data.path} : ${(Date.now() - time) / 1000} s`);
     }
 }
 

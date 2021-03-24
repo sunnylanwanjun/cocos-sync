@@ -1,4 +1,5 @@
 import { find, Mat4, Node, Quat, Vec3 } from 'cc';
+import { SyncAssetData } from '../datas/asset/asset';
 import { SyncSceneData } from '../datas/scene';
 import { deserializeData } from '../utils/deserialize';
 import { cce, Editor, log, warn } from '../utils/editor';
@@ -91,15 +92,26 @@ async function syncAssets () {
         return;
     }
 
-    let sceneData = CocosSync.sceneData as SyncSceneData
-    let total = sceneData.assets.length;
+    let sceneData = CocosSync.sceneData! as SyncSceneData
+    let total = sceneData.asyncAssets.length;
+    if (sceneData.asyncAssets) {
+        await Promise.all(sceneData.asyncAssets.map(async (data: SyncAssetData, i: number) => {
+            let syncTime = Date.now();
+            log(`------------------- Begin sync asset: ${i} - ${total} - ${data.path} -------------------`);
+            await CocosSync.sync(data, sceneData);
+            log(`------------------- End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s -------------------`);
+            log(' ')
+        }))
+    }
+
+    total = sceneData.assets.length;
     for (let i = 0; i < total; i++) {
         let syncTime = Date.now();
         let data = deserializeData(sceneData.assets[i]);
 
         if (data) {
             log(`------------------- Begin sync asset: ${i} - ${total} - ${data.path} -------------------`);
-            await CocosSync.sync(data, sceneData!);
+            await CocosSync.sync(data, sceneData);
             log(`------------------- End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s -------------------`);
             log(' ')
         }

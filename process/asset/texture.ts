@@ -59,6 +59,8 @@ export class SyncTexture extends SyncAsset {
 
                 fse.ensureDirSync(path.dirname(dstPath));
 
+                // let time1 = Date.now();
+
                 if (mipmapData.dataPath) {
                     fse.copyFileSync(mipmapData.dataPath, dstPath);
                 }
@@ -92,32 +94,40 @@ export class SyncTexture extends SyncAsset {
                     })
                 }
 
-                await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
+                // let time2 = Date.now();
+                // console.warn(`Process Texture : ${(time2 - time1) / 1000} s`)
 
-                if (data.type === TextureType.Cube) {
-                    let metaPath = dstPath + '.meta';
-                    if (fse.existsSync(metaPath)) {
-                        let meta = fse.readJSONSync(metaPath);
-                        meta.userData.type = 'texture cube';
-                        fse.writeJSONSync(metaPath, meta);
-
-                        await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
-                    }
+                let metaPath = dstPath + '.meta';
+                if (!fse.existsSync(metaPath)) {
+                    // to generate the meta file
+                    await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
                 }
-                else if (data.type === TextureType.Texture && mipmapCount === 1) {
-                    let metaPath = dstPath + '.meta';
-                    if (fse.existsSync(metaPath)) {
-                        let meta = fse.readJSONSync(metaPath);
+
+                if (data.type === TextureType.Cube || (data.type === TextureType.Texture && mipmapCount === 1)) {
+                    let meta = fse.readJSONSync(metaPath);
+
+                    if (data.type === TextureType.Cube) {
+                        if (!meta.userData) {
+                            meta.userData = {};
+                        }
+                        meta.userData.type = 'texture cube';
+                    }
+                    else if (data.type === TextureType.Texture && mipmapCount === 1) {
                         if (meta.subMetas) {
                             for (let id in meta.subMetas) {
                                 meta.subMetas[id].userData.mipfilter = 'linear';
                             }
                         }
-                        fse.writeJSONSync(metaPath, meta);
-
-                        await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
                     }
+
+                    fse.writeJSONSync(metaPath, meta);
+
                 }
+
+                await Editor.Message.request('asset-db', 'refresh-asset', dstUrl);
+
+                // let time3 = Date.now();
+                // console.warn(`Refresh Texture : ${(time3 - time2) / 1000} s`)
             }));
         }
         else {

@@ -44,7 +44,7 @@ export class SyncTexture extends SyncAsset {
             mipmapCount = data.detail.mipmaps.length;
         }
 
-        let detail = data.detail;
+        let detail = data.detail!;
         if (detail) {
             await Promise.all(detail.mipmaps.map(async (mipmapData, index) => {
                 mipmapData = deserializeData(mipmapData);
@@ -52,7 +52,7 @@ export class SyncTexture extends SyncAsset {
                 let subfix = `/mipmap_${index}.png`;
                 let dstPath = data.dstPath;
                 let dstUrl = data.dstUrl;
-                if (detail!.mipmaps.length > 1) {
+                if (detail.mipmaps.length > 1) {
                     dstPath += subfix;
                     dstUrl = dstUrl.replace('/textureCube', subfix + '/textureCube');
                 }
@@ -62,7 +62,21 @@ export class SyncTexture extends SyncAsset {
                 // let time1 = Date.now();
 
                 if (mipmapData.dataPath) {
-                    fse.copyFileSync(mipmapData.dataPath, dstPath);
+                    if (detail.scale !== 1) {
+                        await new Promise((resolve, reject) => {
+                            Sharp(mipmapData.dataPath)
+                                .resize({ width: mipmapData.width * detail.scale, height: mipmapData.height * detail.scale })
+                                .toFile(dstPath, (err: any) => {
+                                    if (err) {
+                                        return reject(err);
+                                    }
+                                    resolve(null);
+                                })
+                        })
+                    }
+                    else {
+                        fse.copyFileSync(mipmapData.dataPath, dstPath);
+                    }
                 }
                 else {
                     let datas;
@@ -85,6 +99,7 @@ export class SyncTexture extends SyncAsset {
 
                     await new Promise((resolve, reject) => {
                         Sharp(buffer, opts)
+                            .resize({ width: mipmapData.width * detail!.scale, height: mipmapData.height * detail!.scale })
                             .toFile(dstPath, (err: any) => {
                                 if (err) {
                                     return reject(err);
@@ -146,7 +161,7 @@ export class SyncTexture extends SyncAsset {
             mipmapCount = data.detail.mipmaps.length;
         }
 
-        if (mipmapCount > 1) {
+        if (data.type === TextureType.Cube) {
             data.asset = await Promise.all(new Array(mipmapCount).fill(0).map(async (mipmapData, index) => {
                 let subfix = `/mipmap_${index}.png`;
                 let dstUrl = data.dstUrl.replace('/textureCube', subfix + '/textureCube');

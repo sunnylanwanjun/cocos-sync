@@ -1,4 +1,4 @@
-#include <./pbr-lighting>
+#include <pbr-lighting>
 
 vec3 FresnelTerm (vec3 F0, float cosA)
 {

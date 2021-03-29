@@ -1,4 +1,4 @@
-#include <./pbr-lighting>
+#include <pbr-lighting>
 
 
 // GGX / Trowbridge-Reitz

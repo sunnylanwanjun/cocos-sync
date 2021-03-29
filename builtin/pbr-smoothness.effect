@@ -22,64 +22,64 @@ CCEffect %{
         metallicGlossMap: { value: grey }
         occlusionMap:   { value: white }
         emissiveMap:    { value: grey }
-        envMap:         { value: white }
+        # envMap:         { value: white }
       migrations:
         properties:
           pbrParams: { removeImmediately: true }
-    - &forward-add
-      vert: standard-vs:vert
-      frag: standard-fs:frag
-      phase: forward-add
-      propertyIndex: 0
-      embeddedMacros: { CC_FORWARD_ADD: true }
-      depthStencilState:
-        depthFunc: equal
-        depthTest: true
-        depthWrite: false
-      blendState:
-        targets:
-        - blend: true
-          blendSrc: one
-          blendDst: one
-          blendSrcAlpha: zero
-          blendDstAlpha: one
-      properties: *props
-    - &shadow-caster
-      vert: shadow-caster-vs:vert
-      frag: shadow-caster-fs:frag
-      phase: shadow-caster
-      propertyIndex: 0
-      rasterizerState:
-        cullMode: front
-      properties:
-        tilingOffset:   { value: [1.0, 1.0, 0.0, 0.0] }
-        mainColor:      { value: [1.0, 1.0, 1.0, 1.0], target: albedo, editor: { displayName: Albedo, type: color } }
-        albedoScale:    { value: [1.0, 1.0, 1.0], target: albedoScaleAndCutoff.xyz }
-        alphaThreshold: { value: 0.5, target: albedoScaleAndCutoff.w, editor: { parent: USE_ALPHA_TEST } }
-        occlusion:      { value: 1.0, target: pbrParams.x }
-        roughness:      { value: 0.8, target: pbrParams.y }
-        metallic:       { value: 0.6, target: pbrParams.z }
-        normalStrenth:  { value: 1.0, target: pbrParams.w, editor: { parent: USE_NORMAL_MAP } }
-        emissive:       { value: [0.0, 0.0, 0.0, 1.0] }
-        emissiveScale:  { value: [1.0, 1.0, 1.0], target: emissiveScaleParam.xyz }
-        albedoMap:      { value: grey, editor: { displayName: AlbedoMap } }
-  - name: transparent
-    passes:
-    - vert: standard-vs:vert
-      frag: standard-fs:frag
-      depthStencilState:
-        depthTest: true
-        depthWrite: false
-      blendState:
-        targets:
-        - blend: true
-          blendSrc: one
-          blendSrcAlpha: one
-          blendDst: one_minus_src_alpha
-          blendDstAlpha: one_minus_src_alpha
-      properties: *props
-    - *forward-add
-    - *shadow-caster
+  #   - &forward-add
+  #     vert: standard-vs:vert
+  #     frag: standard-fs:frag
+  #     phase: forward-add
+  #     propertyIndex: 0
+  #     embeddedMacros: { CC_FORWARD_ADD: true }
+  #     depthStencilState:
+  #       depthFunc: equal
+  #       depthTest: true
+  #       depthWrite: false
+  #     blendState:
+  #       targets:
+  #       - blend: true
+  #         blendSrc: one
+  #         blendDst: one
+  #         blendSrcAlpha: zero
+  #         blendDstAlpha: one
+  #     properties: *props
+  #   - &shadow-caster
+  #     vert: shadow-caster-vs:vert
+  #     frag: shadow-caster-fs:frag
+  #     phase: shadow-caster
+  #     propertyIndex: 0
+  #     rasterizerState:
+  #       cullMode: front
+  #     properties:
+  #       tilingOffset:   { value: [1.0, 1.0, 0.0, 0.0] }
+  #       mainColor:      { value: [1.0, 1.0, 1.0, 1.0], target: albedo, editor: { displayName: Albedo, type: color } }
+  #       albedoScale:    { value: [1.0, 1.0, 1.0], target: albedoScaleAndCutoff.xyz }
+  #       alphaThreshold: { value: 0.5, target: albedoScaleAndCutoff.w, editor: { parent: USE_ALPHA_TEST } }
+  #       occlusion:      { value: 1.0, target: pbrParams.x }
+  #       roughness:      { value: 0.8, target: pbrParams.y }
+  #       metallic:       { value: 0.6, target: pbrParams.z }
+  #       normalStrenth:  { value: 1.0, target: pbrParams.w, editor: { parent: USE_NORMAL_MAP } }
+  #       emissive:       { value: [0.0, 0.0, 0.0, 1.0] }
+  #       emissiveScale:  { value: [1.0, 1.0, 1.0], target: emissiveScaleParam.xyz }
+  #       albedoMap:      { value: grey, editor: { displayName: AlbedoMap } }
+  # - name: transparent
+  #   passes:
+  #   - vert: standard-vs:vert
+  #     frag: standard-fs:frag
+  #     depthStencilState:
+  #       depthTest: true
+  #       depthWrite: false
+  #     blendState:
+  #       targets:
+  #       - blend: true
+  #         blendSrc: one
+  #         blendSrcAlpha: one
+  #         blendDst: one_minus_src_alpha
+  #         blendDstAlpha: one_minus_src_alpha
+  #     properties: *props
+  #   - *forward-add
+  #   - *shadow-caster
 }%
 
 CCProgram shared-ubos %{
@@ -99,7 +99,7 @@ CCProgram standard-vs %{
   #include <cc-global>
   #include <cc-local-batch>
   #include <shared-ubos>
-  #include <cc-fog>
+  // #include <cc-fog>
   #include <cc-shadow-map-vs>
 
   #if USE_VERTEX_COLOR
@@ -111,7 +111,7 @@ CCProgram standard-vs %{
   out vec3 v_normal;
   out vec2 v_uv;
   out vec2 v_uv1;
-  out float v_fog_factor;
+  // out float v_fog_factor;
 
   #if USE_NORMAL_MAP
     out vec3 v_tangent;
@@ -150,13 +150,13 @@ CCProgram standard-vs %{
     #if USE_VERTEX_COLOR
       v_color = a_color;
     #endif
-    v_fog_factor = CC_TRANSFER_FOG(pos);
+    // v_fog_factor = CC_TRANSFER_FOG(pos);
 
     #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
       CCLightingMapCaclUV();
     #endif
 
-    CCPassShadowParams(pos);
+    // CCPassShadowParams(pos);
 
     return cc_matProj * (cc_matView * matWorld) * In.position;
   }
@@ -168,10 +168,10 @@ CCProgram standard-fs %{
   #include <gamma>
   #include <output-standard>
   #include <shared-ubos>
-  #include <cc-fog>
+  // #include <cc-fog>
   
-  #include <./rgbe>
-  #include <./pbr-standard>
+  #include <rgbe>
+  #include <pbr-standard>
 
   #if USE_LIGHTMAP && !USE_BATCHING && !CC_FORWARD_ADD
     #include <lightingmap-fs>
@@ -181,7 +181,7 @@ CCProgram standard-fs %{
   in vec2 v_uv;
   in vec2 v_uv1;
   in vec3 v_normal;
-  in float v_fog_factor;
+  // in float v_fog_factor;
 
   #if USE_VERTEX_COLOR
     in vec3 v_color;
@@ -291,78 +291,80 @@ CCProgram standard-fs %{
   vec4 frag () {
     StandardSurface s; surf(s);
     vec4 color = CCStandardShading(s);
-    color = CC_APPLY_FOG(color, v_fog_factor);
+    // color = CC_APPLY_FOG(color, v_fog_factor);
     color = CCFragOutput(color);
     return color;
+
+    // return vec4(1.);
   }
 }%
 
-CCProgram shadow-caster-vs %{
-  precision highp float;
-  #include <input-standard>
-  #include <cc-local-batch>
-  #include <shared-ubos>
-  #include <cc-shadow>
+// CCProgram shadow-caster-vs %{
+//   precision highp float;
+//   #include <input-standard>
+//   #include <cc-local-batch>
+//   #include <shared-ubos>
+//   #include <cc-shadow>
 
-  #if HAS_SECOND_UV || USE_LIGHTMAP
-    in vec2 a_texCoord1;
-  #endif
+//   #if HAS_SECOND_UV || USE_LIGHTMAP
+//     in vec2 a_texCoord1;
+//   #endif
 
-  out vec2 v_uv;
-  out vec2 v_uv1;
+//   out vec2 v_uv;
+//   out vec2 v_uv1;
 
-  out float v_clip_depth;
+//   out float v_clip_depth;
 
-  vec4 vert () {
-    StandardVertInput In;
-    CCVertInput(In);
+//   vec4 vert () {
+//     StandardVertInput In;
+//     CCVertInput(In);
 
-    mat4 matWorld, matWorldIT;
-    CCGetWorldMatrixFull(matWorld, matWorldIT);
+//     mat4 matWorld, matWorldIT;
+//     CCGetWorldMatrixFull(matWorld, matWorldIT);
 
-    vec4 worldPos = matWorld * In.position;
-    vec4 clipPos = cc_matLightViewProj * worldPos;
+//     vec4 worldPos = matWorld * In.position;
+//     vec4 clipPos = cc_matLightViewProj * worldPos;
 
-    v_uv = a_texCoord * tilingOffset.xy + tilingOffset.zw;
-    #if HAS_SECOND_UV
-      v_uv1 = a_texCoord1 * tilingOffset.xy + tilingOffset.zw;
-    #endif
+//     v_uv = a_texCoord * tilingOffset.xy + tilingOffset.zw;
+//     #if HAS_SECOND_UV
+//       v_uv1 = a_texCoord1 * tilingOffset.xy + tilingOffset.zw;
+//     #endif
 
-    v_clip_depth = clipPos.z / clipPos.w * 0.5 + 0.5;
+//     v_clip_depth = clipPos.z / clipPos.w * 0.5 + 0.5;
 
-    return clipPos;
-  }
-}%
+//     return clipPos;
+//   }
+// }%
 
-CCProgram shadow-caster-fs %{
-  precision highp float;
-  #include <shared-ubos>
-  #include <packing>
+// CCProgram shadow-caster-fs %{
+//   precision highp float;
+//   #include <shared-ubos>
+//   #include <packing>
 
-  in vec2 v_uv;
-  in vec2 v_uv1;
-  in float v_clip_depth;
+//   in vec2 v_uv;
+//   in vec2 v_uv1;
+//   in float v_clip_depth;
 
-  #if USE_ALBEDO_MAP
-    uniform sampler2D albedoMap;
-    #pragma define ALBEDO_UV options([v_uv, v_uv1])
-  #endif
+//   #if USE_ALBEDO_MAP
+//     uniform sampler2D albedoMap;
+//     #pragma define ALBEDO_UV options([v_uv, v_uv1])
+//   #endif
 
-  #if USE_ALPHA_TEST
-    #pragma define ALPHA_TEST_CHANNEL options([a, r])
-  #endif
+//   #if USE_ALPHA_TEST
+//     #pragma define ALPHA_TEST_CHANNEL options([a, r])
+//   #endif
 
-  vec4 frag () {
-    vec4 baseColor = albedo;
+//   vec4 frag () {
+//     vec4 baseColor = albedo;
 
-    #if USE_ALBEDO_MAP
-      baseColor *= texture(albedoMap, ALBEDO_UV);
-    #endif
+//     #if USE_ALBEDO_MAP
+//       baseColor *= texture(albedoMap, ALBEDO_UV);
+//     #endif
 
-    #if USE_ALPHA_TEST
-      if (baseColor.ALPHA_TEST_CHANNEL < albedoScaleAndCutoff.w) discard;
-    #endif
+//     #if USE_ALPHA_TEST
+//       if (baseColor.ALPHA_TEST_CHANNEL < albedoScaleAndCutoff.w) discard;
+//     #endif
 
-    return packDepthToRGBA(v_clip_depth);
-  }
-}%
+//     return packDepthToRGBA(v_clip_depth);
+//   }
+// }%

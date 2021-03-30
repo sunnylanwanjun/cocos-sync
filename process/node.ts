@@ -1,5 +1,6 @@
 import { director, find, js, Node, Quat, Vec3 } from 'cc';
 import { SyncNodeData } from '../datas/node';
+import { ReflectionProbesRendering } from '../extend-component/reflection-probes-rendering';
 import { deserializeData } from '../utils/deserialize';
 import { GuidProvider } from '../utils/guid-provider';
 import { merge } from './merge-node';
@@ -16,6 +17,13 @@ export class PrivateSyncNodeData extends SyncNodeData {
     matrix: IMat4 | undefined;
 }
 
+function createRootNode () {
+    let root = new Node(CocosSync.Export_Base);
+    root.addComponent(ReflectionProbesRendering);
+    root.parent = director.getScene() as any;
+    return root;
+}
+
 @register
 export class SyncNode extends SyncBase {
     DATA = SyncNodeData;
@@ -24,9 +32,7 @@ export class SyncNode extends SyncBase {
         if (!parent) {
             parent = find(CocosSync.Export_Base);
             if (!parent) {
-                parent = new Node(CocosSync.Export_Base);
-                // parent.setScale(-1, 1, 1);
-                parent.parent = director.getScene() as any;
+                parent = createRootNode();
             }
         }
 

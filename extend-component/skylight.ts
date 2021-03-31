@@ -2,8 +2,8 @@ import { Component, TextureCube, _decorator, __private } from 'cc';
 
 const { ccclass, type } = _decorator;
 
-@ccclass('sync.ReflectionProbe')
-export class ReflectionProbe extends Component {
+@ccclass('sync.SkyLight')
+export class SkyLight extends Component {
     @type(TextureCube)
     mipmaps: TextureCube[] = [];
 

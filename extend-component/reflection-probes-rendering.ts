@@ -1,6 +1,7 @@
 import { Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, _decorator } from 'cc';
 import { warn } from '../utils/editor';
 import { ReflectionProbe } from './reflection-probe';
+import { SkyLight } from './skylight';
 
 const { ccclass, executeInEditMode } = _decorator
 
@@ -38,8 +39,16 @@ export class ReflectionProbesRendering extends Component {
 
         let probes = this.getComponentsInChildren(ReflectionProbe);
         probes.forEach((probe, index) => {
-            material.setProperty(`envMap_${index}`, probe.cube);
+            if (index < 2) {
+                material.setProperty(`envMap_ref_${index}`, probe.cube);
+            }
         })
+
+        let skylight = this.getComponentInChildren(SkyLight);
+        if (skylight) {
+            material.setProperty(`envMap_sky`, skylight.cube);
+        }
+
         material.passes.forEach(p => p.update());
     }
 }

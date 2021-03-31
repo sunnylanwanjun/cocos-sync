@@ -7,6 +7,8 @@ import { Color, CurveRange, GradientRange, ParticleSystem } from "cc";
 import { geometry } from "cc";
 import { __private } from "cc";
 import { Gradient } from "../../datas/component/particle-system/gradient";
+import { SyncMaterialData } from "../../datas/asset/material";
+import { Material } from "cc";
 
 let map = new Map;
 map.set(CurveRange, function (data: CurveRangeData) {
@@ -45,6 +47,10 @@ map.set(Color, function (data: IColor) {
 
 
 function copy (dst: any, src: any, strict = true) {
+    if (!src || !dst) {
+        return;
+    }
+
     for (let key in src) {
         if (key in src) {
             let func = (dst[key] !== undefined) && map.get(dst[key].constructor)
@@ -77,14 +83,46 @@ function copy (dst: any, src: any, strict = true) {
     }
 }
 
+function copyAndEnable (module: any, data: any) {
+    if (data && module && !(module instanceof ParticleSystem)) {
+        (data as any).enable = true;
+    }
+    copy(module, data);
+}
+
 @register
 export class SyncParticleSystem extends SyncComponent {
     DATA = SyncParticleSystemData;
 
-    import (comp: ParticleSystem, data: SyncParticleSystemData) {
-        let main = data.main;
-        
-        copy(comp, main);
-        
+    async import (comp: ParticleSystem, data: SyncParticleSystemData) {
+        copy(comp, data.main);
+
+        if (!data.modules) {
+            return;
+        }
+
+        copyAndEnable(comp.colorOverLifetimeModule, data.modules.colorOvertime);
+
+        if (data.modules.emission) {
+            copyAndEnable(comp, data.modules.emission);
+            // data.modules.emission.bursts.forEach(burstData => {
+            //     let burst = new Burst()
+            //     comp.bursts.push(burst)
+            // })
+        }
+
+        copyAndEnable(comp.forceOvertimeModule, data.modules.forceOvertime);
+        copyAndEnable(comp.limitVelocityOvertimeModule, data.modules.limitVelocityOvertime);
+
+        if (data.modules.renderer) {
+            copyAndEnable(comp.renderer, data.modules.renderer);
+            comp.renderer.particleMaterial = await CocosSync.get<SyncMaterialData>(data.modules.renderer.materialUuid).asset! as Material;
+        }
+
+        copyAndEnable(comp.rotationOvertimeModule, data.modules.rotationOvertime);
+        copyAndEnable(comp.shapeModule, data.modules.shape);
+        copyAndEnable(comp.sizeOvertimeModule, data.modules.sizeOvertime);
+        copyAndEnable(comp.velocityOvertimeModule, data.modules.velocityOvertime);
+
     }
 }

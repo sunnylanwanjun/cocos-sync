@@ -18,5 +18,7 @@ export class SyncReflectionProbe extends SyncComponent {
         else {
             comp.mipmaps = [asset];
         }
+
+        comp.radius = data.radius;
     }
 }

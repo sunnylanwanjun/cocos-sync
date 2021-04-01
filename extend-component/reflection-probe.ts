@@ -1,11 +1,14 @@
 import { Component, TextureCube, _decorator, __private } from 'cc';
 
-const { ccclass, type } = _decorator;
+const { ccclass, type, property } = _decorator;
 
 @ccclass('sync.ReflectionProbe')
 export class ReflectionProbe extends Component {
     @type(TextureCube)
     mipmaps: TextureCube[] = [];
+
+    @property
+    radius = 0;
 
     private _cube: TextureCube | undefined;
     get cube () {
@@ -17,8 +20,5 @@ export class ReflectionProbe extends Component {
             this._cube.setMipFilter(TextureCube.Filter.LINEAR);
         }
         return this._cube;
-    }
-
-    start () {
     }
 }

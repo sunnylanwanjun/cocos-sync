@@ -22,7 +22,7 @@ export class ReflectionProbesRendering extends Component {
         this._material = v;
     }
 
-    start () {
+    async start () {
         let pipeline = director.root!.pipeline;
         if (!(pipeline instanceof DeferredPipeline)) {
             warn(`ReflectionProbesRendering : pipeline [${pipeline}] is not a DeferredPipeline.`)
@@ -54,33 +54,46 @@ export class ReflectionProbesRendering extends Component {
         }
 
         this.material = material;
+
+        if (EDITOR) {
+            await this.updateMaterials(material._uuid);
+        }
+
         this.probes = this.getComponentsInChildren(ReflectionProbe);
         this.skylights = this.getComponentsInChildren(SkyLight);
     }
 
     onEnable () {
         if (EDITOR) {
-            cce.Asset.on('asset-refresh', this.updateMaterials, this);
+            this.updateMaterials = this.updateMaterials.bind(this);
+            cce.Asset.on('asset-refresh', this.updateMaterials);
         }
     }
 
     onDestroy () {
         if (EDITOR) {
-            cce.Asset.off('asset-refresh', this.updateMaterials, this);
+            cce.Asset.off('asset-refresh', this.updateMaterials);
         }
     }
 
-    updateMaterials (uuid: string) {
+    async updateMaterials (uuid: string) {
         if (EDITOR && this.material && this.material._uuid === uuid) {
 
-            assetManager.loadAny(uuid, (err: any, material: Material) => {
-                if (err) {
-                    error(err);
-                }
+            return new Promise((resolve, reject) => {
+                assetManager.loadAny(uuid, (err: any, material: Material) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
 
-                this.material = material;
-                (this.lightingStage as any)._deferredMaterial = this.material;
-            });
+                    this.material = material;
+                    (this.lightingStage as any)._deferredMaterial = this.material;
+
+                    cce.Engine.repaintInEditMode();
+
+                    resolve(null);
+                });
+            })
         }
     }
 

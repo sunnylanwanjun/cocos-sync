@@ -1,17 +1,26 @@
-import { builtinResMgr, Camera, Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, TextureCube, Vec3, Vec4, _decorator } from 'cc';
+import { assetManager, builtinResMgr, Camera, Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, TextureCube, Vec3, Vec4, _decorator } from 'cc';
 import { EDITOR } from 'cc/env';
-import { cce, warn } from '../utils/editor';
+import { cce, error, warn } from '../utils/editor';
 import { ReflectionProbe } from './reflection-probe';
 import { SkyLight } from './skylight';
 
-const { ccclass, executeInEditMode } = _decorator
+const { ccclass, executeInEditMode, property, type } = _decorator
 
 @ccclass('sync.ReflectionProbesRendering')
 @executeInEditMode
 export class ReflectionProbesRendering extends Component {
     probes: ReflectionProbe[] = [];
     skylights: SkyLight[] = [];
-    material: Material | undefined;
+    lightingStage: LightingStage | undefined;
+
+    _material: Material | null = null;
+    @type(Material)
+    get material () {
+        return this._material;
+    }
+    set material (v) {
+        this._material = v;
+    }
 
     start () {
         let pipeline = director.root!.pipeline;
@@ -36,6 +45,8 @@ export class ReflectionProbesRendering extends Component {
             return;
         }
 
+        this.lightingStage = stage as LightingStage;
+
         let material = (stage as LightingStage as any)._deferredMaterial as Material;
         if (!material) {
             warn('ReflectionProbesRendering : Can not find Deferred Material.');
@@ -45,6 +56,32 @@ export class ReflectionProbesRendering extends Component {
         this.material = material;
         this.probes = this.getComponentsInChildren(ReflectionProbe);
         this.skylights = this.getComponentsInChildren(SkyLight);
+    }
+
+    onEnable () {
+        if (EDITOR) {
+            cce.Asset.on('asset-refresh', this.updateMaterials, this);
+        }
+    }
+
+    onDestroy () {
+        if (EDITOR) {
+            cce.Asset.off('asset-refresh', this.updateMaterials, this);
+        }
+    }
+
+    updateMaterials (uuid: string) {
+        if (EDITOR && this.material && this.material._uuid === uuid) {
+
+            assetManager.loadAny(uuid, (err: any, material: Material) => {
+                if (err) {
+                    error(err);
+                }
+
+                this.material = material;
+                (this.lightingStage as any)._deferredMaterial = this.material;
+            });
+        }
     }
 
     update () {

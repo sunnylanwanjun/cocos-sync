@@ -23,9 +23,9 @@ export class MeshRendererProbe extends Component {
     _materialDirty = false;
 
     start () {
-        // if (EDITOR) {
-        //     cce.Asset.on('asset-refresh', this.updateMaterials.bind(this));
-        // }
+        if (EDITOR) {
+            cce.Asset.on('asset-refresh', this.updateMaterials.bind(this));
+        }
 
         this.updateMaterials('**');
     }

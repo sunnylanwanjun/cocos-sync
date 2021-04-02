@@ -4,6 +4,7 @@ import { SyncAssetData } from '../../datas/asset/asset';
 import { SyncSceneData } from '../../datas/scene';
 import { AssetOpration } from '../../utils/asset-operation';
 import { cce, Editor, error, fse, log, path, projectAssetPath, projectPath } from '../../utils/editor';
+import { formatPath } from '../../utils/path';
 import { SyncBase } from '../sync-base';
 
 let mtimeConfigsPath: string;
@@ -19,29 +20,59 @@ if (EDITOR) {
 export abstract class SyncAsset extends SyncBase {
     abstract import (data: SyncAssetData): Promise<any>;
 
-    calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
-        data.srcPath = data.srcPath || path.join(sceneData.assetBasePath, data.path);
-
-        data.dstPath = path.join(projectAssetPath, sceneData.exportBasePath, data.path);
-        data.dstUrl = `db://assets/${path.join(sceneData.exportBasePath, data.path)}`;
+    // paths
+    getRelPath (data: SyncAssetData) {
+        return data.path;
+    }
+    getDstRelPath (data: SyncAssetData) {
+        return path.join(CocosSync.sceneData!.exportBasePath, this.getRelPath(data));
+    }
+    getSrcPath (data: SyncAssetData) {
+        return data.srcPath || path.join(CocosSync.sceneData!.assetBasePath, this.getRelPath(data));
+    }
+    getDstPath (data: SyncAssetData) {
+        return path.join(projectAssetPath, this.getDstRelPath(data));
+    }
+    getDstUrl (data: SyncAssetData) {
+        let relPath = path.relative(projectAssetPath, this.getDstPath(data));
+        return `db://assets/${formatPath(relPath)}`;
     }
 
+    calcPath (data: SyncAssetData, sceneData: SyncSceneData) {
+        data.srcPath = this.getSrcPath(data);
+        data.dstPath = this.getDstPath(data);
+        data.dstUrl = this.getDstUrl(data);
+    }
+
+    // 
+
     async needSync (data: SyncAssetData) {
+        let statsPath = '';
         if (data.virtualAsset) {
-            return true;
-        }
-        if (data.shouldCheckSrc && !fse.existsSync(data.srcPath)) {
-            throw 'asset not exists : ' + data.srcPath;
+            if (data.virtualAssetPath) {
+                statsPath = data.virtualAssetPath;
+            }
+            else {
+                return true;
+            }
         }
 
-        const srcStats = fse.statSync(data.srcPath);
+        if (!statsPath) {
+            statsPath = data.srcPath;
+        }
+
+        if (data.shouldCheckSrc && !fse.existsSync(statsPath)) {
+            throw 'asset not exists : ' + statsPath;
+        }
+
+        const srcStats = fse.statSync(statsPath);
         let mtime = srcStats.mtime.toJSON();
 
-        if (mtimeConfigs[data.srcPath] === mtime && fse.existsSync(data.dstPath)) {
+        if (mtimeConfigs[data.__uuid__] === mtime && fse.existsSync(data.dstPath)) {
             return false;
         }
 
-        mtimeConfigs[data.srcPath] = mtime;
+        mtimeConfigs[data.__uuid__] = mtime;
 
         fse.ensureDirSync(path.dirname(mtimeConfigsPath));
         fse.writeJSONSync(mtimeConfigsPath, mtimeConfigs);
@@ -50,7 +81,7 @@ export abstract class SyncAsset extends SyncBase {
     }
 
     async load (data: SyncAssetData) {
-        data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl);
+        data.asset = await AssetOpration.loadAssetByUrl(data.dstUrl) as any;
     }
 
     async save (data: SyncAssetData, asset: Asset | string) {

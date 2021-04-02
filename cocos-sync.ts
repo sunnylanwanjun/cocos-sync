@@ -9,6 +9,7 @@ import { SyncSceneData } from './datas/scene';
 // if (EDITOR) {
 class CocosSyncClass implements ICocosSync {
     Export_Base = "Export_Base";
+    Export_Asset_Proxy = "Export_Proxy"
 
     FinishedEvent = new Event()
 
@@ -55,7 +56,9 @@ class CocosSyncClass implements ICocosSync {
     }
 
     async getDetailData (assetData: SyncAssetData): Promise<object | null> {
-        log('getDetailData : ' + assetData.path)
+        log('Begin getDetailData : ' + assetData.path)
+
+        let time = Date.now();
 
         if (!_ioSocket && !_wsSocket) {
             return null;
@@ -76,6 +79,8 @@ class CocosSyncClass implements ICocosSync {
                     reject(err);
                     return;
                 }
+
+                log(`End getDetailData : ${assetData.path}  :  ${(Date.now() - time) / 1000} s`)
 
                 resolve(data);
             }

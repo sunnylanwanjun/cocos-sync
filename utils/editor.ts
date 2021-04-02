@@ -11,10 +11,16 @@ export const path = EDITOR && (window as any).require('path');
 export const fse = EDITOR && (window as any).require('fs-extra');
 export const base642arraybuffer = EDITOR && (window as any).require('base64-arraybuffer');
 export const Sharp = EDITOR && (window as any).require('sharp');
+export const Buffer = EDITOR && (window as any).Buffer;
+
+if (Sharp) {
+    Sharp.cache(false);
+}
 
 export const Editor = EDITOR && (window as any).Editor;
 export const projectPath = EDITOR && formatPath(Editor.Project.path);
 export const projectAssetPath = EDITOR && formatPath(path.join(projectPath, 'assets'));
+
 
 export function log (...args: any[]) {
     ccwarn(...args);

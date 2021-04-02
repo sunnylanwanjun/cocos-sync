@@ -1,8 +1,8 @@
 import { find, Mat4, Node, Quat, Vec3 } from 'cc';
-import { cce } from '../../advanced-pipeline/utils/editor';
+import { SyncAssetData } from '../datas/asset/asset';
 import { SyncSceneData } from '../datas/scene';
 import { deserializeData } from '../utils/deserialize';
-import { Editor, log, warn } from '../utils/editor';
+import { cce, Editor, log, warn } from '../utils/editor';
 import { merge } from './merge-node';
 import { PrivateSyncNodeData, PrivateSyncNodeData as SyncNodeData } from './node';
 import { register } from './register';
@@ -92,16 +92,28 @@ async function syncAssets () {
         return;
     }
 
-    let sceneData = CocosSync.sceneData as SyncSceneData
-    let total = sceneData.assets.length;
+    let sceneData = CocosSync.sceneData! as SyncSceneData
+    let total = sceneData.asyncAssets.length;
+    if (sceneData.asyncAssets) {
+        await Promise.all(sceneData.asyncAssets.map(async (data: SyncAssetData, i: number) => {
+            let syncTime = Date.now();
+            log(`------------------- Begin sync asset: ${i} - ${total} - ${data.path} -------------------`);
+            await CocosSync.sync(data, sceneData);
+            log(`------------------- End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s -------------------`);
+            log(' ')
+        }))
+    }
+
+    total = sceneData.assets.length;
     for (let i = 0; i < total; i++) {
         let syncTime = Date.now();
         let data = deserializeData(sceneData.assets[i]);
 
         if (data) {
-            log(`Begin sync asset: ${i} - ${total} - ${data.path}`);
-            await CocosSync.sync(data, sceneData!);
-            log(`End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s `);
+            log(`------------------- Begin sync asset: ${i} - ${total} - ${data.path} -------------------`);
+            await CocosSync.sync(data, sceneData);
+            log(`------------------- End sync asset: ${i} - ${total} - ${data.path} : ${(Date.now() - syncTime) / 1000} s -------------------`);
+            log(' ')
         }
     }
 
@@ -143,10 +155,10 @@ function syncDatasFrame () {
             CocosSync.FinishedEvent.invoke();
 
             setTimeout(() => {
-                Editor.Message.request('scene', 'soft-reload');
+                // Editor.Message.request('scene', 'soft-reload');
             }, 1000)
 
-            log(`End sync: ${Date.now() - _startTime} ms`);
+            log(`End sync Nodes: ${Date.now() - _startTime} ms`);
 
             clearInterval(_syncIntervalID);
             _syncIntervalID = -1;
@@ -162,7 +174,7 @@ function syncDatas () {
         clearInterval(_syncIntervalID);
     }
 
-    log('Begin sync...');
+    log('Begin sync Nodes...');
     _startTime = Date.now();
 
     syncDatasFrame();
@@ -174,6 +186,10 @@ export class SyncScene extends SyncBase {
     DATA = SyncSceneData;
 
     async sync (data: PrivateSyncSceneData) {
+        let time = Date.now();
+        log('******************** Begin Sync scene ********************')
+        log(' ')
+
         if (data.editorView) {
             cce.Camera._camera.node.position = data.editorView.position;
             // cce.Camera._camera.node.eulerAngles = data.editorView.eulerAngles;
@@ -206,5 +222,8 @@ export class SyncScene extends SyncBase {
         await syncAssets();
 
         syncDatas();
+
+        log(' ')
+        log(`******************** End Sync scene : ${(Date.now() - time) / 1000} s ********************`)
     }
 }

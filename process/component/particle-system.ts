@@ -96,6 +96,7 @@ export class SyncParticleSystem extends SyncComponent {
 
     async import (comp: ParticleSystem, data: SyncParticleSystemData) {
         copy(comp, data.main);
+        comp.scaleSpace = 1; // local
 
         if (!data.modules) {
             return;

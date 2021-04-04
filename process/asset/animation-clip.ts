@@ -16,7 +16,7 @@ export class SyncAnimationClip extends SyncAsset {
 
         let extName = path.extname(dstRelPath)
         let basenameNoExt = path.basename(dstRelPath).replace(extName, '');
-        if (extName != ".anim") {
+        if (extName != ".anim" && extName != ".uasset") {
             basenameNoExt += "/" + data.animName;
         }
 

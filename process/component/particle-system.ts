@@ -37,7 +37,16 @@ let tempRange = new GradientRange;
 let TempGradientCtor = tempRange.gradient.constructor as any;
 map.set(TempGradientCtor, function (data: Gradient) {
     let value = new TempGradientCtor
-    copy(value, data);
+
+    value.mode = data.mode;
+    value.colorKeys = data.colorKeys.map(colorKey => {
+        return {
+            color: new Color().set(colorKey.color! as Color),
+            time: colorKey.time
+        }
+    })
+    value.alphaKeys = data.alphaKeys;
+
     return value;
 })
 
@@ -46,36 +55,40 @@ map.set(Color, function (data: IColor) {
 })
 
 
-function copy (dst: any, src: any, strict = true) {
+
+
+function copy (dst: any, src: any, strict = true, types?: any) {
     if (!src || !dst) {
         return;
     }
 
     for (let key in src) {
         if (key in src) {
-            let func = (dst[key] !== undefined) && map.get(dst[key].constructor)
-            if (func) {
-                dst[key] = func(src[key]);
+
+            if (Array.isArray(dst[key])) {
+                let dstArray = dst[key];
+                let srcArray = src[key];
+                dstArray.length = 0;
+                let func = (srcArray[0] !== undefined) && map.get(srcArray[0].constructor) || (types && map.get(types[key]));
+                for (let i = 0; i < srcArray.length; i++) {
+                    if (func) {
+                        dstArray[i] = func(srcArray[i])
+                    }
+                    else {
+                        dstArray[i] = srcArray[i];
+                    }
+                }
             }
             else {
-                if (Array.isArray(dst[key])) {
-                    let dstArray = dst[key];
-                    let srcArray = src[key];
-                    dstArray.length = 0;
-                    let func = (srcArray[0] !== undefined) && map.get(srcArray[0].constructor);
-                    for (let i = 0; i < dstArray.length; i++) {
-                        if (func) {
-                            dstArray[i] = func(srcArray[i])
-                        }
-                        else {
-                            dstArray[i] = srcArray[i];
-                        }
-                    }
+                let func = (dst[key] !== undefined) && map.get(dst[key].constructor) || (types && map.get(types[key]));
+                if (func) {
+                    dst[key] = func(src[key]);
                 }
                 else {
                     dst[key] = src[key];
                 }
             }
+
         }
         else if (strict) {
             console.warn(`copy may be wrong: ${key} not exists in dst`);

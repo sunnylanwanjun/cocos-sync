@@ -1,4 +1,4 @@
-import { assetManager, builtinResMgr, Camera, Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, TextureCube, Vec3, Vec4, _decorator } from 'cc';
+import { assetManager, builtinResMgr, Camera, Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, PostprocessStage, TextureCube, Vec3, Vec4, _decorator } from 'cc';
 import { EDITOR } from 'cc/env';
 import { cce, error, warn } from '../utils/editor';
 import { ReflectionProbe } from './reflection-probe';
@@ -11,15 +11,26 @@ const { ccclass, executeInEditMode, property, type } = _decorator
 export class ReflectionProbesRendering extends Component {
     probes: ReflectionProbe[] = [];
     skylights: SkyLight[] = [];
-    lightingStage: LightingStage | undefined;
 
-    _material: Material | null = null;
+    lightingStage: LightingStage | undefined;
+    postProcessStage: PostprocessStage | undefined;
+
+    _lightingMaterial: Material | null = null;
     @type(Material)
-    get material () {
-        return this._material;
+    get lightingMaterial () {
+        return this._lightingMaterial;
     }
-    set material (v) {
-        this._material = v;
+    set lightingMaterial (v) {
+        this._lightingMaterial = v;
+    }
+
+    _postprocessMaterial: Material | null = null;
+    @type(Material)
+    get postprocessMaterial () {
+        return this._postprocessMaterial;
+    }
+    set postprocessMaterial (v) {
+        this._postprocessMaterial = v;
     }
 
     async start () {
@@ -37,26 +48,37 @@ export class ReflectionProbesRendering extends Component {
             return;
         }
 
-        let stage = flow.stages.find(stage => {
+        let lightingStage = flow.stages.find(stage => {
             return stage instanceof LightingStage;
         })
-        if (!stage) {
-            warn('ReflectionProbesRendering : Can not find LightingStage.');
-            return;
+        if (lightingStage) {
+            let material = (lightingStage as LightingStage as any)._deferredMaterial as Material;
+            if (!material) {
+                warn('ReflectionProbesRendering : Can not find Deferred Material.');
+                return;
+            }
+
+            this.lightingMaterial = material;
+            this.lightingStage = lightingStage as LightingStage;
         }
 
-        this.lightingStage = stage as LightingStage;
+        let postProcessStage = flow.stages.find(stage => {
+            return stage instanceof PostprocessStage;
+        })
+        if (postProcessStage) {
+            let material = (postProcessStage as PostprocessStage as any)._postprocessMaterial as Material;
+            if (!material) {
+                warn('ReflectionProbesRendering : Can not find Post Process Material.');
+                return;
+            }
 
-        let material = (stage as LightingStage as any)._deferredMaterial as Material;
-        if (!material) {
-            warn('ReflectionProbesRendering : Can not find Deferred Material.');
-            return;
+            this.postprocessMaterial = material;
+            this.postProcessStage = postProcessStage as PostprocessStage;
         }
 
-        this.material = material;
 
         if (EDITOR) {
-            await this.updateMaterials(material._uuid);
+            await this.updateMaterials();
         }
 
         this.probes = this.getComponentsInChildren(ReflectionProbe);
@@ -76,29 +98,46 @@ export class ReflectionProbesRendering extends Component {
         }
     }
 
-    async updateMaterials (uuid: string) {
-        if (EDITOR && this.material && this.material._uuid === uuid) {
+    async updateMaterials (uuid?: string) {
+        if (EDITOR) {
+            if (!uuid || (this.lightingMaterial && this.lightingMaterial._uuid === uuid)) {
+                await new Promise((resolve, reject) => {
+                    assetManager.loadAny(this.lightingMaterial!._uuid, (err: any, material: Material) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
 
-            return new Promise((resolve, reject) => {
-                assetManager.loadAny(uuid, (err: any, material: Material) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
+                        this.lightingMaterial = material;
+                        (this.lightingStage as any)._deferredMaterial = material;
 
-                    this.material = material;
-                    (this.lightingStage as any)._deferredMaterial = this.material;
+                        resolve(null);
+                    });
+                })
+            }
 
-                    cce.Engine.repaintInEditMode();
+            if (!uuid || (this.postprocessMaterial && this.postprocessMaterial._uuid === uuid)) {
+                await new Promise((resolve, reject) => {
+                    assetManager.loadAny(this.postprocessMaterial!._uuid, (err: any, material: Material) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
 
-                    resolve(null);
-                });
-            })
+                        this.postprocessMaterial = material;
+                        (this.postProcessStage as any)._postprocessMaterial = material;
+
+                        resolve(null);
+                    });
+                })
+            }
+
+            cce.Engine.repaintInEditMode();
         }
     }
 
     update () {
-        let material = this.material;
+        let material = this.lightingMaterial;
         if (!material) {
             return;
         }

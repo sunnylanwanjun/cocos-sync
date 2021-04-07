@@ -19,15 +19,22 @@ export class SyncDeferredPipleline extends SyncAsset {
         }
 
         if (data.deferredLightingMaterialUuid) {
-            let materialData = await CocosSync.get<SyncMaterialData>(data.deferredLightingMaterialUuid);
+            let deferredMaterialData = await CocosSync.get<SyncMaterialData>(data.deferredLightingMaterialUuid);
+            let deferredPPMaterialData = await CocosSync.get<SyncMaterialData>(data.deferredPostProcessMaterialUuid);
 
-            if (materialData && materialData.asset) {
-                contentJson.forEach(content => {
+            contentJson.forEach(content => {
+                if (deferredMaterialData && deferredMaterialData.asset) {
                     if (content.__type__ === 'LightingStage') {
-                        content._deferredMaterial.__uuid__ = (materialData.asset! as Asset)._uuid;
+                        content._deferredMaterial.__uuid__ = (deferredMaterialData.asset! as Asset)._uuid;
                     }
-                })
-            }
+                }
+
+                if (deferredPPMaterialData && deferredPPMaterialData.asset) {
+                    if (content.__type__ === 'PostprocessStage') {
+                        content._postprocessMaterial.__uuid__ = (deferredPPMaterialData.asset! as Asset)._uuid;
+                    }
+                }
+            })
         }
 
         this.save(data, JSON.stringify(contentJson, null, 4));

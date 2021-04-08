@@ -43,19 +43,31 @@ export class LightmapSetting extends Component {
 
                     sm.onMacroPatchesStateChanged(macros);
                 })
+
+                this.addVector.forEach((v, index) => {
+                    let lightingMapAdds: number[] = []
+                    Vec4.toArray(lightingMapAdds, v, index * 4);
+                    meshRenderer!.setInstancedAttribute('a_lightingMapAdds' + index, lightingMapAdds)
+                })
+
+                this.scaleVector.forEach((v, index) => {
+                    let lightingMapScales: number[] = []
+                    Vec4.toArray(lightingMapScales, v, index * 4);
+                    meshRenderer!.setInstancedAttribute('a_lightingMapScales' + index, lightingMapScales)
+                })
             }
 
-            let materials = meshRenderer.sharedMaterials;
-            for (let i = 0, l = materials.length; i < l; i++) {
-                if (uuid !== '**' && materials[i]?._uuid !== uuid) {
-                    continue;
-                }
-                let m = meshRenderer.getMaterialInstance(i);
-                if (!m) continue;
+            // let materials = meshRenderer.sharedMaterials;
+            // for (let i = 0, l = materials.length; i < l; i++) {
+            //     if (uuid !== '**' && materials[i]?._uuid !== uuid) {
+            //         continue;
+            //     }
+            //     let m = meshRenderer.getMaterialInstance(i);
+            //     if (!m) continue;
 
-                m.setProperty('LightMapScale', this.scaleVector);
-                m.setProperty('LightMapAdd', this.addVector);
-            }
+            //     m.setProperty('LightMapScale', this.scaleVector);
+            //     m.setProperty('LightMapAdd', this.addVector);
+            // }
         }
     }
 }

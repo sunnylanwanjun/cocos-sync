@@ -30,10 +30,11 @@ export class SyncMaterial extends SyncAsset {
     async import (data: SyncMaterialData) {
         let mtlJson: any;
 
-        if (fse.existsSync(data.dstPath)) {
-            mtlJson = fse.readJsonSync(data.dstPath);
-        }
-        else {
+        // if (fse.existsSync(data.dstPath)) {
+        //     mtlJson = fse.readJsonSync(data.dstPath);
+        // }
+        // else 
+        {
             let url = ''
             if (data.shaderType === ShaderType.Standard) {
                 url = 'db://assets/lib/cocos-sync/builtin/pbr-smoothness.mtl';

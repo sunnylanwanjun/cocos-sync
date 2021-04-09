@@ -18,5 +18,7 @@ export class SyncSkylight extends SyncComponent {
         else {
             comp.mipmaps = [asset];
         }
+
+        comp.averageBrightness = data.averageBrightness;
     }
 }

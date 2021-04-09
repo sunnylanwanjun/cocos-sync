@@ -6,6 +6,8 @@ import { SkyLight } from './skylight';
 
 const { ccclass, executeInEditMode, property, type } = _decorator
 
+let ReflectionAverageBrigtness = new Vec4();
+
 @ccclass('sync.ReflectionProbesRendering')
 @executeInEditMode
 export class ReflectionProbesRendering extends Component {
@@ -161,6 +163,8 @@ export class ReflectionProbesRendering extends Component {
             return distA - distB;
         })
 
+        ReflectionAverageBrigtness.multiplyScalar(0);
+
         let blackCube = builtinResMgr.get<TextureCube>('black-cube-texture');
         for (let i = 0; i < 2; i++) {
             let probe = probes[i];
@@ -168,6 +172,13 @@ export class ReflectionProbesRendering extends Component {
                 material.setProperty(`envMap_ref_${i}`, probe.cube);
                 let pos = probe.node.getWorldPosition();
                 material.setProperty(`ReflectionPositionsAndRadii_${i}`, new Vec4(pos.x, pos.y, pos.z, probe.radius));
+
+                if (i == 0) {
+                    ReflectionAverageBrigtness.x = probe.averageBrightness;
+                }
+                else if (i == 1) {
+                    ReflectionAverageBrigtness.y = probe.averageBrightness;
+                }
             }
             else {
                 material.setProperty(`envMap_ref_${i}`, blackCube);
@@ -178,10 +189,13 @@ export class ReflectionProbesRendering extends Component {
         let skylight = this.skylights[0];
         if (skylight) {
             material.setProperty(`envMap_sky`, skylight.cube);
+            ReflectionAverageBrigtness.z = skylight.averageBrightness;
         }
         else {
             material.setProperty(`envMap_sky`, blackCube);
         }
+
+        material.setProperty(`ReflectionAverageBrigtness`, ReflectionAverageBrigtness);
 
         material.passes.forEach(p => p.update());
     }

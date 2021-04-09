@@ -1,11 +1,14 @@
 import { Component, TextureCube, _decorator, __private } from 'cc';
 
-const { ccclass, type } = _decorator;
+const { ccclass, type, property } = _decorator;
 
 @ccclass('sync.SkyLight')
 export class SkyLight extends Component {
     @type(TextureCube)
     mipmaps: TextureCube[] = [];
+
+    @property
+    averageBrightness = 0.5;
 
     private _cube: TextureCube | undefined;
     get cube () {

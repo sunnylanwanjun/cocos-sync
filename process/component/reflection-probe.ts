@@ -20,5 +20,7 @@ export class SyncReflectionProbe extends SyncComponent {
         }
 
         comp.radius = data.radius;
+
+        comp.averageBrightness = data.averageBrightness;
     }
 }

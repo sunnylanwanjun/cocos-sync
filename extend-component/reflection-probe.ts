@@ -10,6 +10,9 @@ export class ReflectionProbe extends Component {
     @property
     radius = 0;
 
+    @property
+    averageBrightness = 0.5;
+
     private _cube: TextureCube | undefined;
     get cube () {
         if (!this._cube) {

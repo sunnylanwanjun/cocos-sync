@@ -48,12 +48,12 @@ export class SyncMeshRenderer extends SyncComponent {
         }
 
         // mesh vertex attribute
-        if (data.requestSettings) {
-            let setting = comp.getComponent(MeshRendererSetting);
-            if (!setting) {
-                setting = comp.addComponent(MeshRendererSetting)
-            }
-        }
+        // if (data.requestSettings) {
+        //     let setting = comp.getComponent(MeshRendererSetting);
+        //     if (!setting) {
+        //         setting = comp.addComponent(MeshRendererSetting)
+        //     }
+        // }
 
         if (!lightMapValid) {
             let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting));

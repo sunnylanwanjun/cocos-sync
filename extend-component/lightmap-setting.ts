@@ -14,12 +14,21 @@ export class LightmapSetting extends Component {
     scaleVector: Vec4[] = [];
 
     start () {
-        if (EDITOR) {
-            cce.Asset.on('asset-refresh', this.updateMaterials.bind(this));
-        }
-
         this.updateMaterials('**');
 
+    }
+
+    onEnable () {
+        if (EDITOR) {
+            this.updateMaterials = this.updateMaterials.bind(this);
+            cce.Asset.on('asset-refresh', this.updateMaterials);
+        }
+    }
+
+    onDisable () {
+        if (EDITOR) {
+            cce.Asset.on('asset-refresh', this.updateMaterials);
+        }
     }
 
     updateMaterials (uuid: string) {
@@ -42,32 +51,24 @@ export class LightmapSetting extends Component {
                     }
 
                     sm.onMacroPatchesStateChanged(macros);
+                    //@ts-ignore
+                    meshRenderer?.model._updateAttributesAndBinding(index);
                 })
 
                 this.addVector.forEach((v, index) => {
                     let lightingMapAdds: number[] = []
-                    Vec4.toArray(lightingMapAdds, v, index * 4);
+                    Vec4.toArray(lightingMapAdds, v);
                     meshRenderer!.setInstancedAttribute('a_lightingMapAdds' + index, lightingMapAdds)
                 })
 
                 this.scaleVector.forEach((v, index) => {
                     let lightingMapScales: number[] = []
-                    Vec4.toArray(lightingMapScales, v, index * 4);
+                    Vec4.toArray(lightingMapScales, v);
                     meshRenderer!.setInstancedAttribute('a_lightingMapScales' + index, lightingMapScales)
                 })
+                //@ts-ignore
+                meshRenderer._onUpdateLightingmap();
             }
-
-            // let materials = meshRenderer.sharedMaterials;
-            // for (let i = 0, l = materials.length; i < l; i++) {
-            //     if (uuid !== '**' && materials[i]?._uuid !== uuid) {
-            //         continue;
-            //     }
-            //     let m = meshRenderer.getMaterialInstance(i);
-            //     if (!m) continue;
-
-            //     m.setProperty('LightMapScale', this.scaleVector);
-            //     m.setProperty('LightMapAdd', this.addVector);
-            // }
         }
     }
 }

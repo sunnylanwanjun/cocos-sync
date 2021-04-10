@@ -3,12 +3,11 @@ import { SyncComponent } from "./component";
 import { register } from "../register";
 import { AnimationCurve, CurveRange as CurveRangeData, Keyframe } from "../../datas/component/particle-system/curve-range";
 import { GradientRange as GradientRangeData } from "../../datas/component/particle-system/gradient-range";
-import { Color, CurveRange, GradientRange, ParticleSystem } from "cc";
-import { geometry } from "cc";
-import { __private } from "cc";
-import { Gradient } from "../../datas/component/particle-system/gradient";
+import { Burst as BurstData } from "../../datas/component/particle-system/burst";
+import { Color, CurveRange, GradientRange, ParticleSystem, Burst, AlphaKey, ColorKey, Gradient } from "cc";
+import { geometry, __private, Material } from "cc";
+import { Gradient as GradientData } from "../../datas/component/particle-system/gradient";
 import { SyncMaterialData } from "../../datas/asset/material";
-import { Material } from "cc";
 
 let map = new Map;
 map.set(CurveRange, function (data: CurveRangeData) {
@@ -33,19 +32,24 @@ map.set(GradientRange, function (data: GradientRangeData) {
     return value;
 })
 
-let tempRange = new GradientRange;
-let TempGradientCtor = tempRange.gradient.constructor as any;
-map.set(TempGradientCtor, function (data: Gradient) {
-    let value = new TempGradientCtor
+map.set(Gradient, function (data: GradientData) {
+    let value = new Gradient();
 
-    value.mode = data.mode;
-    value.colorKeys = data.colorKeys.map(colorKey => {
-        return {
-            color: new Color().set(colorKey.color! as Color),
-            time: colorKey.time
-        }
-    })
-    value.alphaKeys = data.alphaKeys;
+    if (data) {
+        value.mode = data.mode;
+        value.colorKeys = data.colorKeys.map(data => {
+            let colorkey = new ColorKey();
+            colorkey.color = new Color(data.color! as Color);
+            colorkey.time = data.time;
+            return colorkey;
+        })
+        value.alphaKeys = data.alphaKeys.map(data => {
+            let alphaKey = new AlphaKey();
+            alphaKey.alpha = data.alpha;
+            alphaKey.time = data.time;
+            return alphaKey;
+        });
+    }
 
     return value;
 })
@@ -54,7 +58,11 @@ map.set(Color, function (data: IColor) {
     return new Color(data.r, data.g, data.b, data.a);
 })
 
-
+map.set(Burst, function (data: BurstData) {
+    let burst = new Burst();
+    copy(burst, data);
+    return burst;
+})
 
 
 function copy (dst: any, src: any, strict = true, types?: any) {
@@ -96,11 +104,11 @@ function copy (dst: any, src: any, strict = true, types?: any) {
     }
 }
 
-function copyAndEnable (module: any, data: any) {
+function copyAndEnable (module: any, data: any, strict = true, types?: any) {
     if (data && module && !(module instanceof ParticleSystem)) {
         (data as any).enable = true;
     }
-    copy(module, data);
+    copy(module, data, strict, types);
 }
 
 @register
@@ -118,11 +126,7 @@ export class SyncParticleSystem extends SyncComponent {
         copyAndEnable(comp.colorOverLifetimeModule, data.modules.colorOvertime);
 
         if (data.modules.emission) {
-            copyAndEnable(comp, data.modules.emission);
-            // data.modules.emission.bursts.forEach(burstData => {
-            //     let burst = new Burst()
-            //     comp.bursts.push(burst)
-            // })
+            copyAndEnable(comp, data.modules.emission, true, { bursts: Burst });
         }
 
         copyAndEnable(comp.forceOvertimeModule, data.modules.forceOvertime);

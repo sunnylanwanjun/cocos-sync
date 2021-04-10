@@ -93,8 +93,8 @@ async function syncAssets () {
     }
 
     let sceneData = CocosSync.sceneData! as SyncSceneData
-    let total = sceneData.asyncAssets.length;
     if (sceneData.asyncAssets) {
+        let total = sceneData.asyncAssets.length;
         await Promise.all(sceneData.asyncAssets.map(async (data: SyncAssetData, i: number) => {
             let syncTime = Date.now();
             log(`------------------- Begin sync asset: ${i} - ${total} - ${data.path} -------------------`);
@@ -104,7 +104,7 @@ async function syncAssets () {
         }))
     }
 
-    total = sceneData.assets.length;
+    let total = sceneData.assets.length;
     for (let i = 0; i < total; i++) {
         let syncTime = Date.now();
         let data = deserializeData(sceneData.assets[i]);

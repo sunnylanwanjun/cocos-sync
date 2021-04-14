@@ -37,6 +37,10 @@ export class LightmapSetting extends Component {
 
             if (meshRenderer.model) {
                 meshRenderer.model.subModels.forEach((sm, index) => {
+                    if (!sm.descriptorSet) {
+                        return;
+                    }
+
                     // let macros = meshRenderer!.model!.getMacroPatches(index);
                     // macros = macros ? macros.concat() : [];
                     // macros.push({ name: 'CC_USE_LIGHTMAP', value: true })

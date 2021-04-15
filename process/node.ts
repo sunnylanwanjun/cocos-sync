@@ -1,6 +1,6 @@
 import { director, find, js, Node, Quat, Vec3 } from 'cc';
 import { SyncNodeData } from '../datas/node';
-import { ReflectionProbesRendering } from '../extend-component/reflection-probes-rendering';
+import { DeferredRendering } from '../extend-component/deferred-rendering';
 import { deserializeData } from '../utils/deserialize';
 import { GuidProvider } from '../utils/guid-provider';
 import { merge } from './merge-node';
@@ -19,7 +19,7 @@ export class PrivateSyncNodeData extends SyncNodeData {
 
 function createRootNode () {
     let root = new Node(CocosSync.Export_Base);
-    root.addComponent(ReflectionProbesRendering);
+    root.addComponent(DeferredRendering);
     root.parent = director.getScene() as any;
     return root;
 }

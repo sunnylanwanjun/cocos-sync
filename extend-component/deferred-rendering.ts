@@ -1,4 +1,4 @@
-import { assetManager, builtinResMgr, Camera, Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, PostprocessStage, TextureCube, Vec3, Vec4, _decorator } from 'cc';
+import { assetManager, builtinResMgr, Camera, Component, DeferredPipeline, director, find, LightingFlow, LightingStage, Material, PostprocessStage, Texture2D, TextureCube, Vec3, Vec4, _decorator } from 'cc';
 import { EDITOR } from 'cc/env';
 import { cce, error, warn } from '../utils/editor';
 import { ReflectionProbe } from './reflection-probe';
@@ -8,9 +8,9 @@ const { ccclass, executeInEditMode, property, type } = _decorator
 
 let ReflectionAverageBrigtness = new Vec4();
 
-@ccclass('sync.ReflectionProbesRendering')
+@ccclass('sync.DeferredRendering')
 @executeInEditMode
-export class ReflectionProbesRendering extends Component {
+export class DeferredRendering extends Component {
     probes: ReflectionProbe[] = [];
     skylights: SkyLight[] = [];
 
@@ -35,10 +35,13 @@ export class ReflectionProbesRendering extends Component {
         this._postprocessMaterial = v;
     }
 
+    @type(Texture2D)
+    colorGradingLUT: Texture2D | null = null;
+
     async start () {
         let pipeline = director.root!.pipeline;
         if (!(pipeline instanceof DeferredPipeline)) {
-            warn(`ReflectionProbesRendering : pipeline [${pipeline}] is not a DeferredPipeline.`)
+            warn(`DeferredRendering : pipeline [${pipeline}] is not a DeferredPipeline.`)
             return;
         }
 
@@ -46,7 +49,7 @@ export class ReflectionProbesRendering extends Component {
             return flow instanceof LightingFlow;
         })
         if (!flow) {
-            warn('ReflectionProbesRendering : Can not find LightingFlow.')
+            warn('DeferredRendering : Can not find LightingFlow.')
             return;
         }
 
@@ -56,7 +59,7 @@ export class ReflectionProbesRendering extends Component {
         if (lightingStage) {
             let material = (lightingStage as LightingStage as any)._deferredMaterial as Material;
             if (!material) {
-                warn('ReflectionProbesRendering : Can not find Deferred Material.');
+                warn('DeferredRendering : Can not find Deferred Material.');
                 return;
             }
 
@@ -70,7 +73,7 @@ export class ReflectionProbesRendering extends Component {
         if (postProcessStage) {
             let material = (postProcessStage as PostprocessStage as any)._postprocessMaterial as Material;
             if (!material) {
-                warn('ReflectionProbesRendering : Can not find Post Process Material.');
+                warn('DeferredRendering : Can not find Post Process Material.');
                 return;
             }
 
@@ -139,6 +142,11 @@ export class ReflectionProbesRendering extends Component {
     }
 
     update () {
+        this.updateLightingPass();
+        this.updateTonemapPass();
+    }
+
+    updateLightingPass () {
         let material = this.lightingMaterial;
         if (!material) {
             return;
@@ -196,6 +204,23 @@ export class ReflectionProbesRendering extends Component {
         }
 
         material.setProperty(`ReflectionAverageBrigtness`, ReflectionAverageBrigtness);
+
+        material.passes.forEach(p => p.update());
+    }
+
+    updateTonemapPass () {
+        let material = this.postprocessMaterial;
+        if (!material) {
+            return;
+        }
+
+        if (this.colorGradingLUT) {
+            material.setProperty('colorGradingLUT', this.colorGradingLUT);
+        }
+        else {
+            let texture = builtinResMgr.get<TextureCube>('white-texture');
+            material.setProperty('colorGradingLUT', texture);
+        }
 
         material.passes.forEach(p => p.update());
     }

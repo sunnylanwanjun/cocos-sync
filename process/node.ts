@@ -1,11 +1,11 @@
 import { director, find, js, Node, Quat, Vec3 } from 'cc';
 import { SyncNodeData } from '../datas/node';
-import { DeferredRendering } from '../extend-component/deferred-rendering';
+import { DeferredRendering } from '../../extend-components/deferred-rendering';
 import { deserializeData } from '../utils/deserialize';
-import { GuidProvider } from '../utils/guid-provider';
 import { merge } from './merge-node';
 import { register } from './register';
 import { SyncBase } from './sync-base';
+import { GuidProvider } from '../../extend-components/guid-provider';
 
 export class PrivateSyncNodeData extends SyncNodeData {
     children: PrivateSyncNodeData[] = []

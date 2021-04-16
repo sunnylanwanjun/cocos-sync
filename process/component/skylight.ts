@@ -3,7 +3,7 @@ import { SyncComponent } from "./component";
 import { register } from "../register";
 import { SyncTextureData } from '../../datas/asset/texture';
 import { SyncSkyLightData } from '../../datas/component/sky-light';
-import { SkyLight } from '../../extend-component/skylight';
+import { SkyLight } from '../../../extend-components/skylight';
 
 @register
 export class SyncSkylight extends SyncComponent {

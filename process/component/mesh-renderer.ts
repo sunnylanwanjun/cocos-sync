@@ -1,15 +1,15 @@
 import { find, js, Material, Mesh, MeshRenderer, Texture2D, Vec4 } from "cc";
 import { SyncComponent } from "./component";
-import { ReflectionProbe } from '../../extend-component/reflection-probe';
-import { MeshRendererProbe, ReflectionProbeInfo } from '../../extend-component/mesh-renderer-probe';
+import { ReflectionProbe } from '../../../extend-components/reflection-probe';
+import { MeshRendererProbe, ReflectionProbeInfo } from '../../../extend-components/mesh-renderer-probe';
 import { deserializeData } from '../../utils/deserialize';
-import { LightmapSetting } from '../../extend-component/lightmap-setting';
+import { LightmapSetting } from '../../../extend-components/lightmap-setting';
 import { register } from "../register";
 import { SyncMeshRendererData } from "../../datas/component/mesh-renderer";
 import { SyncMaterialData } from '../../datas/asset/material';
 import { SyncMeshData } from '../../datas/asset/mesh';
 import { SyncTextureData } from '../../datas/asset/texture';
-import { MeshRendererSetting } from '../../extend-component/mesh-renderer-setting';
+import { MeshRendererSetting } from '../../../extend-components/mesh-renderer-setting';
 
 @register
 export class SyncMeshRenderer extends SyncComponent {

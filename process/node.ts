@@ -1,7 +1,7 @@
 import { director, find, js, Node, Quat, Vec3 } from 'cc';
+import { GuidProvider } from '../../extend-components/guid-provider';
 import { SyncNodeData } from '../datas/node';
 import { deserializeData } from '../utils/deserialize';
-import { GuidProvider } from '../utils/guid-provider';
 import { merge } from './merge-node';
 import { register } from './register';
 import { SyncBase } from './sync-base';

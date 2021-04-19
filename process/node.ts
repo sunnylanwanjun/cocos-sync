@@ -1,4 +1,4 @@
-import { director, find, js, Node, Quat, Vec3 } from 'cc';
+import { director, find, js, Node, Quat, Texture2D, Vec3 } from 'cc';
 import { SyncNodeData } from '../datas/node';
 import { DeferredRendering } from '../../extend-components/deferred-rendering';
 import { deserializeData } from '../utils/deserialize';
@@ -6,6 +6,8 @@ import { merge } from './merge-node';
 import { register } from './register';
 import { SyncBase } from './sync-base';
 import { GuidProvider } from '../../extend-components/guid-provider';
+import { fse, path, projectPath } from '../utils/editor';
+import { AssetOpration } from '../utils/asset-operation';
 
 export class PrivateSyncNodeData extends SyncNodeData {
     children: PrivateSyncNodeData[] = []
@@ -17,9 +19,19 @@ export class PrivateSyncNodeData extends SyncNodeData {
     matrix: IMat4 | undefined;
 }
 
-function createRootNode () {
+async function createRootNode () {
     let root = new Node(CocosSync.Export_Base);
-    root.addComponent(DeferredRendering);
+    let rendering = root.addComponent(DeferredRendering);
+
+    // hack
+    let lutUrl = 'db://assets/Exported-unreal/__builtin__/unreal-deferred-lut.png/texture';
+    let lut: Texture2D | null = null;
+    try {
+        lut = await AssetOpration.loadAssetByUrl(lutUrl) as Texture2D;
+    }
+    catch (err) { }
+    rendering.colorGradingLUT = lut;
+
     root.parent = director.getScene() as any;
     return root;
 }
@@ -32,7 +44,7 @@ export class SyncNode extends SyncBase {
         if (!parent) {
             parent = find(CocosSync.Export_Base);
             if (!parent) {
-                parent = createRootNode();
+                parent = await createRootNode();
             }
         }
 
@@ -71,7 +83,7 @@ export class SyncNode extends SyncBase {
                     continue;
                 }
 
-                CocosSync.sync(cdata, node);
+                await CocosSync.sync(cdata, node);
             }
         }
 

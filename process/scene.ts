@@ -122,7 +122,7 @@ async function syncAssets () {
 
 let _syncIntervalID = -1;
 let _startTime = 0;
-function syncDatasFrame () {
+async function syncDatasFrame () {
     for (let i = 0; i < 1000; i++) {
         let node = _nodeList[_currentNodeIndex];
         if (node) {
@@ -141,7 +141,7 @@ function syncDatasFrame () {
                     parent = parentData.node;
                 }
                 if (finded) {
-                    CocosSync.sync(node, parent);
+                    await CocosSync.sync(node, parent);
                 }
             }
         }

@@ -37,7 +37,13 @@ class CocosSyncClass implements ICocosSync {
             return;
         }
 
-        let res = await cls.instance.sync(data, ...args);
+        let res;
+        try {
+            res = await cls.instance.sync(data, ...args)
+        }
+        catch (err) {
+            error(err);
+        }
 
         let uuid = (data as any as IUUIDBase).__uuid__;
         if (res && uuid) {

@@ -190,7 +190,7 @@ export class SyncMaterial extends SyncAsset {
             d['USE_LIGHTMAP'] = data.hasLightMap;
             d['HAS_SECOND_UV'] = data.hasLightMap;
 
-            d['USE_INSTANCING'] = data.technique !== 'transparent';
+            d['USE_INSTANCING'] = data.canInstancing && data.technique !== 'transparent';
             d['USE_ALPHA_TEST'] = false;
         })
 

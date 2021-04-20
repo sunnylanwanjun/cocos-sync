@@ -127,11 +127,12 @@ export class SyncTexture extends SyncAsset {
                         }
                         meta.userData.type = 'texture cube';
                     }
-                    else if (data.type === TextureType.Texture && mipmapCount === 1) {
-                        if (meta.subMetas) {
-                            for (let id in meta.subMetas) {
-                                meta.subMetas[id].userData.mipfilter = 'linear';
-                            }
+
+                    if (meta.subMetas) {
+                        for (let id in meta.subMetas) {
+                            meta.subMetas[id].userData.mipfilter = mipmapData.mipFilter;
+                            meta.subMetas[id].userData.minfilter = mipmapData.minFilter;
+                            meta.subMetas[id].userData.magfilter = mipmapData.magFilter;
                         }
                     }
 

@@ -1,4 +1,4 @@
-import { director, find, js, Node, Quat, Texture2D, Vec3 } from 'cc';
+import { director, find, js, Material, Node, Quat, Texture2D, Vec3 } from 'cc';
 import { SyncNodeData } from '../datas/node';
 import { DeferredRendering } from '../../extend-components/deferred-rendering';
 import { deserializeData } from '../utils/deserialize';
@@ -8,6 +8,9 @@ import { SyncBase } from './sync-base';
 import { GuidProvider } from '../../extend-components/guid-provider';
 import { fse, path, projectPath } from '../utils/editor';
 import { AssetOpration } from '../utils/asset-operation';
+import { SyncDeferredPipelineData } from '../datas/asset/deferred-pipeline';
+import { CombineLut } from '../../extend-components/combine-lut';
+import { SyncMaterialData } from '../datas/asset/material';
 
 export class PrivateSyncNodeData extends SyncNodeData {
     children: PrivateSyncNodeData[] = []
@@ -31,6 +34,15 @@ async function createRootNode () {
     }
     catch (err) { }
     rendering.colorGradingLUT = lut;
+
+    let deferredData = CocosSync.get<SyncDeferredPipelineData>('__builtin__/unreal-deferred.rpp');
+    if (deferredData) {
+        let lutMaterialData = CocosSync.get<SyncMaterialData>(deferredData.deferredCombineLutMaterialUuid);
+        if (lutMaterialData.asset) {
+            let lut = root.addComponent(CombineLut);
+            lut.material = lutMaterialData.asset as Material;
+        }
+    }
 
     root.parent = director.getScene() as any;
     return root;

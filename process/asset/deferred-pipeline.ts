@@ -20,6 +20,7 @@ export class SyncDeferredPipleline extends SyncAsset {
 
         if (data.deferredLightingMaterialUuid) {
             let deferredMaterialData = await CocosSync.get<SyncMaterialData>(data.deferredLightingMaterialUuid);
+            let deferredCombineLutMaterialData = await CocosSync.get<SyncMaterialData>(data.deferredCombineLutMaterialUuid);
             let deferredPPMaterialData = await CocosSync.get<SyncMaterialData>(data.deferredPostProcessMaterialUuid);
 
             contentJson.forEach(content => {

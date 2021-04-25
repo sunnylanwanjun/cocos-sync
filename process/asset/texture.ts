@@ -62,10 +62,12 @@ export class SyncTexture extends SyncAsset {
                 // let time1 = Date.now();
 
                 if (mipmapData.dataPath) {
-                    if (detail.scale !== 1) {
+                    let width = Math.min(mipmapData.width * detail.scale, detail.maxSize);
+                    let height = Math.min(mipmapData.height * detail.scale, detail.maxSize);
+                    if (width !== mipmapData.width || height !== mipmapData.height) {
                         await new Promise((resolve, reject) => {
                             Sharp(mipmapData.dataPath)
-                                .resize({ width: mipmapData.width * detail.scale, height: mipmapData.height * detail.scale })
+                                .resize({ width, height })
                                 .toFile(dstPath, (err: any) => {
                                     if (err) {
                                         return reject(err);

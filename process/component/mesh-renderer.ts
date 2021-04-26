@@ -9,17 +9,23 @@ import { SyncMeshRendererData } from "../../datas/component/mesh-renderer";
 import { SyncMaterialData } from '../../datas/asset/material';
 import { SyncMeshData } from '../../datas/asset/mesh';
 import { SyncTextureData } from '../../datas/asset/texture';
-import { MeshRendererSetting } from '../../../extend-components/mesh-renderer-setting';
+import { MeshRendererSetting, UELightmapSetting } from '../../../extend-components/mesh-renderer-setting';
 
 @register
 export class SyncMeshRenderer extends SyncComponent {
     DATA = SyncMeshRendererData;
 
     import (comp: MeshRenderer, data: SyncMeshRendererData) {
+        let setting = comp.getComponent(MeshRendererSetting)!;
+        if (!setting) {
+            setting = comp.addComponent(MeshRendererSetting)!;
+        }
+
         comp.shadowCastingMode = data.casterShadow ? MeshRenderer.ShadowCastingMode.ON : MeshRenderer.ShadowCastingMode.OFF;
         comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
 
         let lightMapValid = false;
+        setting._ueLightmapSetting = null;
         if (data.lightmapSetting) {
             let lightmapSetting = deserializeData(data.lightmapSetting);
 
@@ -34,13 +40,9 @@ export class SyncMeshRenderer extends SyncComponent {
                     && lightmapSetting.scaleVector
                     && lightmapSetting.scaleVector.length
                 ) {
-                    let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting)) as LightmapSetting;
-                    if (!settingComp) {
-                        settingComp = comp.node.addComponent(js.getClassName(LightmapSetting)) as LightmapSetting
-                    }
-
-                    settingComp.addVector = lightmapSetting.addVector.map(v => new Vec4(v as Vec4));
-                    settingComp.scaleVector = lightmapSetting.scaleVector.map(v => new Vec4(v as Vec4));
+                    setting._ueLightmapSetting = new UELightmapSetting();
+                    setting._ueLightmapSetting.addVector = lightmapSetting.addVector.map(v => new Vec4(v as Vec4));
+                    setting._ueLightmapSetting.scaleVector = lightmapSetting.scaleVector.map(v => new Vec4(v as Vec4));
 
                     lightMapValid = true;
                 }
@@ -48,18 +50,8 @@ export class SyncMeshRenderer extends SyncComponent {
         }
 
         // mesh vertex attribute
-        if (data.requestSettings) {
-            let setting = comp.getComponent(MeshRendererSetting);
-            if (!setting) {
-                setting = comp.addComponent(MeshRendererSetting)
-            }
-        }
-
-        if (!lightMapValid) {
-            let settingComp = comp.node.getComponent(js.getClassName(LightmapSetting));
-            if (settingComp) {
-                settingComp.destroy();
-            }
+        if (data.autoCheckAttributes) {
+            setting.autoCheckAttributes = true;
         }
 
         data.materilas.forEach((uuid, index) => {

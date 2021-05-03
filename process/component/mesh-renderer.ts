@@ -25,7 +25,9 @@ export class SyncMeshRenderer extends SyncComponent {
         comp.receiveShadow = data.receiveShadow ? MeshRenderer.ShadowReceivingMode.ON : MeshRenderer.ShadowReceivingMode.OFF;
 
         let lightMapValid = false;
-        setting._ueLightmapSetting = null;
+        // setting._ueLightmapSetting = null;
+        setting._ueLightmapSetting = new UELightmapSetting();
+
         if (data.lightmapSetting) {
             let lightmapSetting = deserializeData(data.lightmapSetting);
 
@@ -40,7 +42,7 @@ export class SyncMeshRenderer extends SyncComponent {
                     && lightmapSetting.scaleVector
                     && lightmapSetting.scaleVector.length
                 ) {
-                    setting._ueLightmapSetting = new UELightmapSetting();
+                    // setting._ueLightmapSetting = new UELightmapSetting();
                     setting._ueLightmapSetting.addVector = lightmapSetting.addVector.map(v => new Vec4(v as Vec4));
                     setting._ueLightmapSetting.scaleVector = lightmapSetting.scaleVector.map(v => new Vec4(v as Vec4));
 

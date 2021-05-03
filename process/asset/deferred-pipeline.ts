@@ -26,12 +26,14 @@ export class SyncDeferredPipleline extends SyncAsset {
             contentJson.forEach(content => {
                 if (deferredMaterialData && deferredMaterialData.asset) {
                     if (content.__type__ === 'LightingStage') {
+                        if (!content._deferredMaterial) content._deferredMaterial = {}
                         content._deferredMaterial.__uuid__ = (deferredMaterialData.asset! as Asset)._uuid;
                     }
                 }
 
                 if (deferredPPMaterialData && deferredPPMaterialData.asset) {
                     if (content.__type__ === 'PostprocessStage') {
+                        if (!content._postprocessMaterial) content._postprocessMaterial = {}
                         content._postprocessMaterial.__uuid__ = (deferredPPMaterialData.asset! as Asset)._uuid;
                     }
                 }

@@ -1,4 +1,4 @@
-import { Color, error, Material, Texture2D, Vec4 } from "cc";
+import { Color, error, Material, renderer, Texture2D, Vec4 } from "cc";
 import { SyncMaterialData, SyncMaterialPropertyType } from "../../datas/asset/material";
 import { register } from "../register";
 import { AssetOpration } from "../../utils/asset-operation";
@@ -143,27 +143,25 @@ export class SyncMaterial extends SyncAsset {
         }
         (mtl as any)._techIdx = techIdx;
 
-        // if (data.passState) {
-        //     // pipeline state
-        //     renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
-        //         rasterizerState: {
-        //             cullMode: data.passState.cullMode,
-        //         },
-        //         // blendState: {
-        //         //     targets: [
-        //         //         {
-        //         //             blendSrc: data.passState.blendSrc,
-        //         //             blendDst: data.passState.blendDst,
-        //         //             blendSrcAlpha: data.passState.blendSrc,
-        //         //             blendDstAlpha: data.passState.blendDst,
-        //         //         }
-        //         //     ]
-        //         // },
-        //         // depthStencilState: {
-        //         //     depthWrite: !data.passState.zWrite,
-        //         // }
-        //     });
-        // }
+        if (data.passState) {
+            // pipeline state
+            renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
+                rasterizerState: data.passState.rasterizerState,
+                // blendState: {
+                //     targets: [
+                //         {
+                //             blendSrc: data.passState.blendSrc,
+                //             blendDst: data.passState.blendDst,
+                //             blendSrcAlpha: data.passState.blendSrc,
+                //             blendDstAlpha: data.passState.blendDst,
+                //         }
+                //     ]
+                // },
+                // depthStencilState: {
+                //     depthWrite: !data.passState.zWrite,
+                // }
+            });
+        }
 
 
         // defines

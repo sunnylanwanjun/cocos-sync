@@ -147,19 +147,8 @@ export class SyncMaterial extends SyncAsset {
             // pipeline state
             renderer.MaterialInstance.prototype.overridePipelineStates.call(mtl, {
                 rasterizerState: data.passState.rasterizerState,
-                // blendState: {
-                //     targets: [
-                //         {
-                //             blendSrc: data.passState.blendSrc,
-                //             blendDst: data.passState.blendDst,
-                //             blendSrcAlpha: data.passState.blendSrc,
-                //             blendDstAlpha: data.passState.blendDst,
-                //         }
-                //     ]
-                // },
-                // depthStencilState: {
-                //     depthWrite: !data.passState.zWrite,
-                // }
+                blendState: data.passState.blendState,
+                depthStencilState: data.passState.depthStencilState
             });
         }
 

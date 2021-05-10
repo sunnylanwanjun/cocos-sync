@@ -141,6 +141,6 @@ export class SyncParticleSystem extends SyncComponent {
         copyAndEnable(comp.shapeModule, data.modules.shape);
         copyAndEnable(comp.sizeOvertimeModule, data.modules.sizeOvertime);
         copyAndEnable(comp.velocityOvertimeModule, data.modules.velocityOvertime);
-
+        copyAndEnable(comp.textureAnimationModule, data.modules.textureSheetAnim);
     }
 }

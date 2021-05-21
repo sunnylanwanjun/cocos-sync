@@ -7,16 +7,19 @@ export const AssetOpration = {
         return null;
     },
 
-    async createMesh (filePath: string) {
+    async createMesh (url: string) {
         let mesh = new Mesh();
         mesh._setRawAsset('.bin');
         return mesh;
     },
 
-    async saveMesh (filePath: string, mesh: Mesh) {
+    async saveMesh (url: string, mesh: Mesh) {
     },
 
-    async saveSkeleton (filePath: string, skeleton: Skeleton) {
+    async saveDataAsMesh (url: string, data: Uint8Array) {
+    },
+
+    async saveSkeleton (url: string, skeleton: Skeleton) {
     },
 }
 
@@ -73,6 +76,19 @@ if (EDITOR && typeof (window as any).BUILDER === 'undefined') {
 
             archive.finalize();
         })
+    }
+
+    AssetOpration.saveDataAsMesh = async function saveDataAsMesh (url: string, data: Uint8Array) {
+        let mesh = new Mesh;
+        mesh.reset({
+            struct: {
+                vertexBundles: [],
+                primitives: [],
+            },
+            data: data
+        })
+
+        AssetOpration.saveMesh(url, mesh);
     }
 
     AssetOpration.saveMesh = async function saveMesh (url: string, mesh: Mesh) {

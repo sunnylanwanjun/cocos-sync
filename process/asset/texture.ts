@@ -1,4 +1,4 @@
-import { SyncTextureData, SyncTextureDataDetail, TextureType } from '../../datas/asset/texture';
+import { ImageDataFormat, SyncTextureData, SyncTextureDataDetail, TextureType } from '../../datas/asset/texture';
 import { AssetOpration } from '../../utils/asset-operation';
 import { deserializeData } from '../../utils/deserialize';
 import { Buffer, Editor, fse, log, path, Sharp } from "../../utils/editor";
@@ -34,6 +34,28 @@ export class SyncTexture extends SyncAsset {
         return path.endsWith('.png') || path.endsWith('.tga');
     }
 
+    getMipmapDstPath (data: SyncTextureData, mipIdx: number) {
+        let subfix = `/mipmap_${mipIdx}.png`;
+        let dstPath = data.dstPath;
+        let dstUrl = data.dstUrl;
+        if (data.mipmapCount > 1) {
+            dstPath += subfix;
+            if (data.type === TextureType.Cube) {
+                dstUrl = dstUrl.replace('/textureCube', subfix + '/textureCube');
+            }
+        }
+
+        if (data.format === ImageDataFormat.LINEAR) {
+            dstPath += '.mesh'
+            dstUrl = dstUrl.replace('.png/textureCube', '.png.mesh')
+        }
+
+        return {
+            dstPath,
+            dstUrl
+        }
+    }
+
     async import (data: SyncTextureData) {
         if (!this.supportFormat(data.srcPath)) {
             data.detail = await CocosSync.getDetailData(data) as SyncTextureDataDetail;
@@ -46,24 +68,22 @@ export class SyncTexture extends SyncAsset {
 
         let detail = data.detail!;
         if (detail) {
-            await Promise.all(detail.mipmaps.map(async (mipmapData, index) => {
+            // await Promise.all(detail.mipmaps.map(async (mipmapData, index) => {
+            for (let index = 0; index < detail.mipmaps.length; index++) {
+                let mipmapData = detail.mipmaps[index];
                 mipmapData = deserializeData(mipmapData);
 
-                let subfix = `/mipmap_${index}.png`;
-                let dstPath = data.dstPath;
-                let dstUrl = data.dstUrl;
-                if (detail.mipmaps.length > 1) {
-                    dstPath += subfix;
-                    dstUrl = dstUrl.replace('/textureCube', subfix + '/textureCube');
-                }
+                const { dstPath, dstUrl } = this.getMipmapDstPath(data, index);
 
                 fse.ensureDirSync(path.dirname(dstPath));
 
                 // let time1 = Date.now();
 
                 if (mipmapData.dataPath) {
-                    let width = Math.min(mipmapData.width * detail.scale, detail.maxSize);
-                    let height = Math.min(mipmapData.height * detail.scale, detail.maxSize);
+                    let scale = Math.min(1, detail.maxSize / Math.max(mipmapData.width, mipmapData.height));
+                    let width = Math.floor(mipmapData.width * detail.scale * scale);
+                    let height = Math.floor(mipmapData.height * detail.scale * scale);
+
                     if (width !== mipmapData.width || height !== mipmapData.height) {
                         await new Promise((resolve, reject) => {
                             Sharp(mipmapData.dataPath)
@@ -89,26 +109,32 @@ export class SyncTexture extends SyncAsset {
                         datas = mipmapData.datas;
                     }
 
-                    const channels = 4;
-                    const rgbaPixel = 0x00000000;
-                    const opts = { raw: { width: mipmapData.width, height: mipmapData.height, channels } };
+                    if (data.format === ImageDataFormat.LINEAR) {
+                        await AssetOpration.saveDataAsMesh(dstUrl, new Uint8Array(datas));
+                    }
+                    else {
+                        const channels = 4;
+                        const rgbaPixel = 0x00000000;
+                        const opts = { raw: { width: mipmapData.width, height: mipmapData.height, channels } };
 
-                    let buffer = Buffer.alloc(mipmapData.width * mipmapData.height * channels, rgbaPixel);
+                        let buffer = Buffer.alloc(mipmapData.width * mipmapData.height * channels, rgbaPixel);
 
-                    for (let i = 0; i < datas.length; i++) {
-                        buffer[i] = datas[i];
+                        for (let i = 0; i < datas.length; i++) {
+                            buffer[i] = datas[i];
+                        }
+
+                        await new Promise((resolve, reject) => {
+                            Sharp(buffer, opts)
+                                .resize({ width: mipmapData.width * detail!.scale, height: mipmapData.height * detail!.scale })
+                                .toFile(dstPath, (err: any) => {
+                                    if (err) {
+                                        return reject(err);
+                                    }
+                                    resolve(null);
+                                })
+                        })
                     }
 
-                    await new Promise((resolve, reject) => {
-                        Sharp(buffer, opts)
-                            .resize({ width: mipmapData.width * detail!.scale, height: mipmapData.height * detail!.scale })
-                            .toFile(dstPath, (err: any) => {
-                                if (err) {
-                                    return reject(err);
-                                }
-                                resolve(null);
-                            })
-                    })
                 }
 
                 // let time2 = Date.now();
@@ -146,7 +172,8 @@ export class SyncTexture extends SyncAsset {
 
                 // let time3 = Date.now();
                 // console.warn(`Refresh Texture : ${(time3 - time2) / 1000} s`)
-            }));
+
+            }// }));
         }
         else {
             fse.ensureDirSync(path.dirname(data.dstPath));
@@ -165,9 +192,8 @@ export class SyncTexture extends SyncAsset {
         }
 
         if (data.type === TextureType.Cube) {
-            data.asset = await Promise.all(new Array(mipmapCount).fill(0).map(async (mipmapData, index) => {
-                let subfix = `/mipmap_${index}.png`;
-                let dstUrl = data.dstUrl.replace('/textureCube', subfix + '/textureCube');
+            data.asset = await Promise.all(new Array(mipmapCount).fill(0).map(async (_, index) => {
+                const { dstUrl } = this.getMipmapDstPath(data, index);
                 return await AssetOpration.loadAssetByUrl(dstUrl)
             })) as any;
         }

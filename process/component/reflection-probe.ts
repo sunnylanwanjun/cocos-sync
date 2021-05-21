@@ -1,4 +1,4 @@
-import { TextureCube, _decorator } from "cc";
+import { Mesh, TextureCube, _decorator } from "cc";
 import { SyncComponent } from "./component";
 import { ReflectionProbe } from '../../../extend-components/reflection-probe';
 import { register } from "../register";
@@ -10,14 +10,25 @@ export class SyncReflectionProbe extends SyncComponent {
     DATA = SyncReflectionProbeData;
 
     import (comp: ReflectionProbe, data: SyncReflectionProbeData) {
-        var asset = CocosSync.get<SyncTextureData>(data.bakedTexture).asset! as TextureCube;
+        let texture = CocosSync.get<SyncTextureData>(data.bakedTexture);
+        let asset = texture.asset! as object;
 
+        comp.mipmaps = [];
+        comp.virtualMipmaps = [];
         if (Array.isArray(asset)) {
-            comp.mipmaps = asset as any as TextureCube[];
+            if (asset[0] instanceof Mesh) {
+                comp.virtualMipmaps = asset as any as Mesh[];
+            }
+            else if (asset[0] instanceof TextureCube) {
+                comp.mipmaps = asset as any as TextureCube[];
+            }
         }
-        else {
+        else if (asset instanceof TextureCube) {
             comp.mipmaps = [asset];
         }
+
+        comp.width = texture.width;
+        comp.height = texture.height;
 
         comp.radius = data.radius;
 

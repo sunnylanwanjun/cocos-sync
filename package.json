@@ -2,11 +2,11 @@
   "name": "cocos-sync",
   "repos": {
     "datas": {
-      "url": "git@github.com:2youyou2/cocos-sync-data.git",
+      "url": "git@github.com:cocos-creator/cocos-sync-data.git",
       "branch": "v3.1"
     },
     "../extend-components": {
-      "url": "git@github.com:2youyou2/cocos-sync-extend-components.git",
+      "url": "git@github.com:cocos-creator/cocos-sync-extend-components.git",
       "branch": "v3.1"
     }
   }

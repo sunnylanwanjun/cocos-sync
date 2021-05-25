@@ -24,7 +24,7 @@ export class SyncSkeleton extends SyncAsset {
             skeleton.bindposes.push(Mat4.fromArray(new Mat4, mats));
         })
         data.bones.forEach(bone => {
-            skeleton.joints.push(bone);
+            skeleton.joints.push(bone.toLocaleLowerCase());
         })
 
         // this.save(data, skeleton);

@@ -60,7 +60,7 @@ export class SyncAnimationClip extends SyncAsset {
             let modifiers = null;
             if (curve.path != "") {
                 modifiers = [
-                    new animation.HierarchyPath(curve.path),
+                    new animation.HierarchyPath(curve.path.toLocaleLowerCase()),
                     curve.name,
                 ];
             } else {
